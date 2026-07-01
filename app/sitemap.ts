@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tools = await getAllReviewMeta();
-  const staticRoutes = ["", "/tools", "/categories", "/search"].map((path) => ({
+  const staticRoutes = ["", "/tools", "/categories", "/search", "/privacy-policy", "/terms", "/disclaimer", "/contact"].map((path) => ({
     url: `${siteConfig.url}${path}`,
     lastModified: new Date()
   }));
