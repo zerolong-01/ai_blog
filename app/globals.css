@@ -271,16 +271,6 @@ h3 {
   margin-top: 1.5rem;
 }
 
-.minimalMeta {
-  margin-top: 2rem;
-  color: var(--muted);
-}
-
-.minimalMeta p {
-  margin: 0 0 0.65rem;
-  font-size: 0.95rem;
-}
-
 .inlineLinks,
 .compactLinks,
 .footerInlineLinks {
@@ -369,30 +359,135 @@ h3 {
   bottom: 6rem;
 }
 
-.homeUtilityRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding: 1.5rem 0 2.25rem;
-  border-top: 1px solid var(--border);
-}
-
-.compactPanel p {
-  margin: 0.3rem 0 0;
-  color: var(--muted);
-}
-
-.compactLabel {
-  font-size: 0.82rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .sectionSpacing,
 .pageShell {
   padding: 1rem 0 3rem;
+}
+
+.feedTabs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.feedTab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: transparent;
+}
+
+.feedTabActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.feedShell,
+.writeShell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.72fr);
+  gap: 2rem;
+}
+
+.feedMain,
+.writeMain {
+  min-width: 0;
+}
+
+.feedList {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.feedCard,
+.editorCard {
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.feedCard:first-child,
+.editorCard {
+  padding-top: 0;
+}
+
+.feedMeta,
+.feedFooter,
+.archiveLink {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.feedMeta,
+.feedFooter,
+.archiveLink span,
+.editorTopline,
+.editorLead {
+  color: var(--muted);
+}
+
+.feedMeta,
+.editorTopline {
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.feedTitleLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.feedSummary {
+  max-width: 62ch;
+}
+
+.feedFooter {
+  justify-content: space-between;
+}
+
+.feedSidebar,
+.writeSidebar {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.archiveList {
+  display: grid;
+  gap: 1rem;
+}
+
+.archiveLink {
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.archiveLink strong {
+  font-size: 1rem;
+}
+
+.editorCard h2 {
+  margin-bottom: 1rem;
+}
+
+.editorLead {
+  font-size: 1.05rem;
+  max-width: 58ch;
+}
+
+.editorSection {
+  margin-top: 2rem;
+}
+
+.editorSection p {
+  max-width: 60ch;
 }
 
 .cardGrid,
@@ -536,6 +631,8 @@ h3 {
 @media (max-width: 960px) {
   .heroGrid,
   .reviewLayout,
+  .feedShell,
+  .writeShell,
   .cardGrid,
   .categoryGrid,
   .dualGrid {
@@ -555,7 +652,6 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .homeUtilityRow,
   .footerBar {
     flex-direction: column;
     align-items: flex-start;
@@ -595,6 +691,17 @@ h3 {
 
   .minimalHeroGrid {
     padding: 3rem 0 2rem;
+  }
+
+  .feedTabs {
+    flex-wrap: wrap;
+  }
+
+  .feedMeta,
+  .feedFooter,
+  .archiveLink {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .minimalArtwork {
