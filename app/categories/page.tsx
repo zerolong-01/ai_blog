@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { categories } from "@/data/tools";
+import { categories } from "@/data/categories";
 import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {

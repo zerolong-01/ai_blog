@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ReviewForm } from "@/components/review-form";
+import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
+import { formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Write an AI Tool Review",
@@ -11,16 +14,9 @@ export const metadata: Metadata = {
   }
 };
 
-const sections = [
-  "What the tool does",
-  "Who it is best for",
-  "Pricing and plan notes",
-  "Strengths",
-  "Weaknesses",
-  "Final verdict"
-];
+export default async function WriteReviewPage() {
+  const tools = await getAllReviewMeta();
 
-export default function WriteReviewPage() {
   return (
     <section className="container pageShell">
       <div className="feedTabs" role="navigation" aria-label="Review tabs">
@@ -37,25 +33,10 @@ export default function WriteReviewPage() {
           <div className="pageIntro">
             <span className="eyebrow">New draft</span>
             <h1>Write a new review</h1>
-            <p>Use this structure to keep every AI tool review readable, consistent, and easy to expand later.</p>
+            <p>Fill out the form below and the site will save a new MDX review file automatically.</p>
           </div>
 
-          <article className="editorCard">
-            <div className="editorTopline">Title</div>
-            <h2>Example: Cursor review for developers shipping fast</h2>
-            <p className="editorLead">
-              Start with a short thesis that explains who the tool is for and whether it is worth paying for.
-            </p>
-
-            {sections.map((section) => (
-              <section key={section} className="editorSection">
-                <h3>{section}</h3>
-                <p>
-                  Add concise, concrete notes here. Focus on fit, tradeoffs, and the kind of user who benefits most.
-                </p>
-              </section>
-            ))}
-          </article>
+          <ReviewForm />
         </div>
 
         <aside className="writeSidebar">
@@ -70,11 +51,15 @@ export default function WriteReviewPage() {
           </div>
 
           <div className="contentCard">
-            <span className="eyebrow">Back to archive</span>
-            <p>Want to compare tone or structure first?</p>
-            <Link href="/tools" className="secondaryButton">
-              View previous reviews
-            </Link>
+            <span className="eyebrow">Previous reviews</span>
+            <div className="archiveList">
+              {tools.map((tool) => (
+                <Link key={tool.slug} href={`/tools/${tool.slug}`} className="archiveLink">
+                  <strong>{tool.name}</strong>
+                  <span>{formatDate(tool.updatedAt)}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </aside>
       </div>

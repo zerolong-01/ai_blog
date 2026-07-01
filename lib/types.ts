@@ -5,7 +5,7 @@ export type ToolCategory =
   | "video"
   | "developer";
 
-export type ToolReview = {
+export type ToolReviewMeta = {
   slug: string;
   name: string;
   tagline: string;
@@ -20,4 +20,8 @@ export type ToolReview = {
   features: string[];
   verdict: string;
   updatedAt: string;
+};
+
+export type ToolReview = ToolReviewMeta & {
+  content: string;
 };

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { SearchPanel } from "@/components/search-panel";
-import { tools } from "@/data/tools";
+import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -12,7 +12,9 @@ export const metadata: Metadata = {
   }
 };
 
-export default function SearchPage() {
+export default async function SearchPage() {
+  const tools = await getAllReviewMeta();
+
   return (
     <section className="container pageShell">
       <div className="pageIntro">

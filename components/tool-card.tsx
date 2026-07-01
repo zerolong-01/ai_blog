@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-import { ToolReview } from "@/lib/types";
+import { ToolReviewMeta } from "@/lib/types";
 
 type ToolCardProps = {
-  tool: ToolReview;
+  tool: ToolReviewMeta;
 };
 
 export function ToolCard({ tool }: ToolCardProps) {

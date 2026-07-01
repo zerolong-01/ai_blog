@@ -1,9 +1,11 @@
 import type { MetadataRoute } from "next";
 
-import { categories, tools } from "@/data/tools";
+import { categories } from "@/data/categories";
+import { getAllReviewMeta } from "@/lib/reviews";
 import { siteConfig } from "@/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const tools = await getAllReviewMeta();
   const staticRoutes = ["", "/tools", "/categories", "/search"].map((path) => ({
     url: `${siteConfig.url}${path}`,
     lastModified: new Date()
