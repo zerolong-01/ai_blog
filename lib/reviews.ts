@@ -7,6 +7,9 @@ import { ToolCategory, ToolReview, ToolReviewMeta } from "@/lib/types";
 
 const reviewsDirectory = path.join(process.cwd(), "content", "reviews");
 
+let reviewMetaCache: Promise<ToolReviewMeta[]> | null = null;
+const reviewContentCache = new Map<string, Promise<ToolReview | undefined>>();
+
 type ReviewFrontmatter = Omit<ToolReviewMeta, "rating"> & {
   title?: string;
   rating: number | string;
@@ -64,6 +67,12 @@ function toToolReview(fileSlug: string, frontmatter: ReviewFrontmatter, content:
   };
 }
 
+function toToolReviewMeta(review: ToolReview): ToolReviewMeta {
+  const { content, ...meta } = review;
+  void content;
+  return meta;
+}
+
 async function ensureReviewsDirectory() {
   await mkdir(reviewsDirectory, { recursive: true });
 }
@@ -75,6 +84,22 @@ async function readReviewFromFile(filename: string) {
   const slug = filename.replace(/\.mdx$/, "");
 
   return toToolReview(slug, data as ReviewFrontmatter, content.trim());
+}
+
+async function readReviewMetaFromFile(filename: string) {
+  const review = await readReviewFromFile(filename);
+  return toToolReviewMeta(review);
+}
+
+function invalidateReviewCache(slug?: string) {
+  reviewMetaCache = null;
+
+  if (slug) {
+    reviewContentCache.delete(slug);
+    return;
+  }
+
+  reviewContentCache.clear();
 }
 
 export async function getAllReviews() {
@@ -89,17 +114,53 @@ export async function getAllReviews() {
 }
 
 export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
-  const reviews = await getAllReviews();
-  return reviews.map((review) => {
-    const { content, ...meta } = review;
-    void content;
-    return meta;
-  });
+  if (!reviewMetaCache) {
+    reviewMetaCache = (async () => {
+      await ensureReviewsDirectory();
+      const filenames = await readdir(reviewsDirectory);
+      const mdxFiles = filenames.filter((filename) => filename.endsWith(".mdx"));
+      const reviews = await Promise.all(mdxFiles.map(readReviewMetaFromFile));
+
+      return reviews.sort((left, right) => {
+        return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+      });
+    })();
+  }
+
+  return reviewMetaCache;
 }
 
 export async function getReviewBySlug(slug: string) {
-  const reviews = await getAllReviews();
-  return reviews.find((review) => review.slug === slug);
+  const normalizedSlug = slugify(slug);
+
+  if (!normalizedSlug) {
+    return undefined;
+  }
+
+  const cachedReview = reviewContentCache.get(normalizedSlug);
+
+  if (cachedReview) {
+    return cachedReview;
+  }
+
+  const reviewPromise = (async () => {
+    try {
+      return await readReviewFromFile(`${normalizedSlug}.mdx`);
+    } catch (error) {
+      const isMissingFile =
+        error instanceof Error && "code" in error && (error as NodeJS.ErrnoException).code === "ENOENT";
+
+      if (isMissingFile) {
+        return undefined;
+      }
+
+      throw error;
+    }
+  })();
+
+  reviewContentCache.set(normalizedSlug, reviewPromise);
+
+  return reviewPromise;
 }
 
 export async function getReviewsByCategory(category: string) {
@@ -173,6 +234,7 @@ export async function createReviewFile(input: CreateReviewInput) {
   await ensureReviewsDirectory();
   const filePath = path.join(reviewsDirectory, `${slug}.mdx`);
   await writeFile(filePath, serializeReviewToMdx(review), "utf8");
+  invalidateReviewCache(slug);
 
   return review;
 }
@@ -186,6 +248,7 @@ export async function deleteReviewFile(slug: string) {
 
   const filePath = path.join(reviewsDirectory, `${normalizedSlug}.mdx`);
   await unlink(filePath);
+  invalidateReviewCache(normalizedSlug);
 
   return normalizedSlug;
 }
