@@ -1,0 +1,440 @@
+:root {
+  --bg: #f4efe6;
+  --surface: rgba(255, 250, 242, 0.78);
+  --surface-strong: #fffaf2;
+  --text: #181512;
+  --muted: #5f564c;
+  --border: rgba(24, 21, 18, 0.1);
+  --accent: #bf5b2c;
+  --accent-strong: #8c3f18;
+  --accent-soft: #f4d9c4;
+  --shadow: 0 16px 50px rgba(40, 24, 11, 0.08);
+  --radius: 24px;
+}
+
+:root[data-theme="dark"] {
+  --bg: #17191f;
+  --surface: rgba(32, 35, 42, 0.88);
+  --surface-strong: #20232a;
+  --text: #f5efe4;
+  --muted: #beb3a6;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #f3a24d;
+  --accent-strong: #ffd098;
+  --accent-soft: rgba(243, 162, 77, 0.16);
+  --shadow: 0 16px 50px rgba(0, 0, 0, 0.24);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(243, 162, 77, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(191, 91, 44, 0.1), transparent 24%),
+    var(--bg);
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+main {
+  min-height: 100vh;
+}
+
+.container {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.siteHeader {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(18px);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.navShell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brandMark strong,
+.brandMark small {
+  display: block;
+}
+
+.brandMark small {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.brandBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: white;
+  font-weight: 700;
+  font-family: Arial, sans-serif;
+}
+
+.mainNav {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  color: var(--muted);
+}
+
+.mainNav a:hover,
+.textLink:hover {
+  color: var(--accent);
+}
+
+.themeToggle,
+.primaryButton,
+.secondaryButton {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 0.85rem 1.2rem;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.themeToggle {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text);
+}
+
+.themeToggle:hover,
+.primaryButton:hover,
+.secondaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.heroSection {
+  padding: 5rem 0 2rem;
+}
+
+.heroGrid,
+.dualGrid,
+.footerGrid,
+.reviewLayout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.heroGrid {
+  grid-template-columns: 1.4fr 0.9fr;
+  align-items: start;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.9rem;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.08;
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: clamp(2.75rem, 8vw, 5.25rem);
+  max-width: 12ch;
+}
+
+h2 {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+}
+
+h3 {
+  font-size: 1.3rem;
+}
+
+.heroCopy,
+.pageIntro p {
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.heroPanel,
+.toolCard,
+.categoryCard,
+.contentCard,
+.scoreCard,
+.adPlaceholder,
+.adFrame {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.heroPanel,
+.contentCard,
+.scoreCard,
+.adPlaceholder,
+.adFrame {
+  padding: 1.4rem;
+}
+
+.heroPanel ul,
+.simpleList {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.ctaRow,
+.sectionHeading,
+.toolCardTop,
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ctaRow {
+  justify-content: flex-start;
+  margin-top: 1.5rem;
+}
+
+.sectionSpacing,
+.pageShell {
+  padding: 1rem 0 3rem;
+}
+
+.cardGrid,
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.toolCard,
+.categoryCard {
+  padding: 1.4rem;
+}
+
+.toolCardTop,
+.metaRow,
+.tagline,
+.rating,
+.pill,
+.searchCount,
+.detailList dt,
+.adLabel {
+  color: var(--muted);
+}
+
+.pill {
+  text-transform: capitalize;
+}
+
+.pageIntro {
+  margin-bottom: 1.5rem;
+}
+
+.searchShell {
+  display: grid;
+  gap: 1rem;
+}
+
+.searchLabel {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-weight: 600;
+}
+
+.searchInput {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 1rem 1.1rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-strong);
+}
+
+.reviewShell {
+  padding: 2rem 0 3rem;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.reviewLayout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.72fr);
+}
+
+.reviewContent {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.reviewSidebar {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.dualGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detailList {
+  margin: 0;
+}
+
+.detailList div + div {
+  margin-top: 0.9rem;
+}
+
+.detailList dt {
+  font-size: 0.92rem;
+}
+
+.detailList dd {
+  margin: 0.25rem 0 0;
+}
+
+.footerLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.siteFooter {
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  padding: 2rem 0 3rem;
+}
+
+.footerGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.adPlaceholder,
+.adFrame {
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.adLabel {
+  display: block;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 960px) {
+  .heroGrid,
+  .reviewLayout,
+  .footerGrid,
+  .cardGrid,
+  .categoryGrid,
+  .dualGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .navShell,
+  .reviewHeader,
+  .sectionHeading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mainNav {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    width: min(100% - 1rem, 1120px);
+  }
+
+  .heroSection {
+    padding-top: 3rem;
+  }
+
+  h1 {
+    max-width: none;
+  }
+
+  .ctaRow {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .themeToggle {
+    width: 100%;
+    text-align: center;
+  }
+}
