@@ -15,10 +15,8 @@ export function Header() {
     <header className="siteHeader">
       <div className="container navShell">
         <Link href="/" className="brandMark">
-          <span className="brandBadge">AI</span>
           <span>
-            <strong>Stacked AI Reviews</strong>
-            <small>Tools worth your time</small>
+            <strong>Stacked AI</strong>
           </span>
         </Link>
 
@@ -30,7 +28,12 @@ export function Header() {
           ))}
         </nav>
 
-        <ThemeToggle />
+        <div className="navActions">
+          <ThemeToggle />
+          <Link href="/tools" className="navCta">
+            Get started
+          </Link>
+        </div>
       </div>
     </header>
   );

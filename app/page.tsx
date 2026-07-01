@@ -1,80 +1,64 @@
 import Link from "next/link";
 
-import { AdSlot } from "@/components/ad-slot";
-import { ToolCard } from "@/components/tool-card";
 import { categories, tools } from "@/data/tools";
 
-const featuredTools = tools.slice(0, 3);
-
 export default function HomePage() {
+  const featuredNames = tools.slice(0, 4).map((tool) => tool.name);
+
   return (
-    <>
-      <section className="heroSection">
-        <div className="container heroGrid">
-          <div>
-            <span className="eyebrow">Editorial AI software reviews for English-speaking markets</span>
-            <h1>Find AI tools that are actually worth paying for.</h1>
-            <p className="heroCopy">
-              Compare AI writing, design, developer, productivity, and video tools with practical reviews built for readers in the US and UK.
-            </p>
-            <div className="ctaRow">
-              <Link href="/tools" className="primaryButton">
-                Explore reviews
-              </Link>
-              <Link href="/search" className="secondaryButton">
-                Search tools
-              </Link>
+    <section className="minimalHero">
+      <div className="container minimalHeroGrid">
+        <div className="minimalHeroCopy">
+          <span className="eyebrow">Independent AI tool reviews</span>
+          <h1>Less hype. Better AI tools.</h1>
+          <p className="heroCopy">
+            Clear, readable reviews for people comparing AI products before they subscribe, switch, or spend.
+          </p>
+          <div className="ctaRow">
+            <Link href="/tools" className="primaryButton">
+              Start reading
+            </Link>
+            <Link href="/categories" className="secondaryButton">
+              Browse topics
+            </Link>
+          </div>
+
+          <div className="minimalMeta">
+            <p>Featured in the library</p>
+            <div className="inlineLinks">
+              {featuredNames.map((name) => (
+                <span key={name}>{name}</span>
+              ))}
             </div>
           </div>
-
-          <div className="heroPanel">
-            <p>Why this structure works for AdSense approval</p>
-            <ul>
-              <li>Content-first layout with readable review pages</li>
-              <li>Clear navigation, category hubs, and internal links</li>
-              <li>Reserved ad slots without aggressive ad density</li>
-            </ul>
-          </div>
         </div>
-      </section>
 
-      <section className="container sectionSpacing">
-        <AdSlot slot="home-top-banner" format="horizontal" />
-      </section>
+        <div className="minimalArtwork" aria-hidden="true">
+          <div className="artFlower" />
+          <div className="artBox" />
+          <div className="artLine artLineOne" />
+          <div className="artLine artLineTwo" />
+          <div className="artDot artDotOne" />
+          <div className="artDot artDotTwo" />
+          <div className="artDot artDotThree" />
+        </div>
+      </div>
 
-      <section className="container sectionSpacing">
-        <div className="sectionHeading">
-          <div>
-            <span className="eyebrow">Featured reviews</span>
-            <h2>Start with the tools readers compare most often</h2>
-          </div>
-          <Link href="/tools" className="textLink">
-            View all reviews
-          </Link>
+      <div className="container homeUtilityRow">
+        <div className="compactPanel">
+          <span className="compactLabel">Why it stays clean</span>
+          <p>The homepage is intentionally light. Reviews, categories, and search live one click away.</p>
         </div>
-        <div className="cardGrid">
-          {featuredTools.map((tool) => (
-            <ToolCard key={tool.slug} tool={tool} />
-          ))}
-        </div>
-      </section>
-
-      <section className="container sectionSpacing">
-        <div className="sectionHeading">
-          <div>
-            <span className="eyebrow">Browse by category</span>
-            <h2>Build authority around clear topical clusters</h2>
-          </div>
-        </div>
-        <div className="categoryGrid">
-          {categories.map((category) => (
-            <Link key={category.slug} href={`/categories/${category.slug}`} className="categoryCard">
-              <h3>{category.name}</h3>
-              <p>{category.description}</p>
+        <div className="compactLinks">
+          <Link href="/tools">All reviews</Link>
+          <Link href="/search">Search</Link>
+          {categories.slice(0, 3).map((category) => (
+            <Link key={category.slug} href={`/categories/${category.slug}`}>
+              {category.name}
             </Link>
           ))}
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
