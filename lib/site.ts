@@ -1,18 +1,18 @@
 export const siteConfig = {
-  name: "Stacked AI Reviews",
+  name: "Stacked AI",
   shortName: "Stacked AI",
   description:
-    "Independent reviews of the best AI tools for writing, design, coding, video, and productivity.",
+    "A clean editorial blog covering AI tools, workflows, ideas, and the shifts shaping how people work.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.example.com",
   locale: "en_US",
-  creator: "Stacked AI Reviews",
+  creator: "Stacked AI",
   keywords: [
-    "AI tools reviews",
-    "best AI tools",
-    "AI writing tools",
-    "AI productivity apps",
-    "AI software reviews",
-    "AI tool comparisons"
+    "AI blog",
+    "artificial intelligence",
+    "AI tools",
+    "AI workflows",
+    "AI writing",
+    "AI productivity"
   ]
 };
 

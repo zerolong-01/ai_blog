@@ -6,6 +6,11 @@ export const categories: Array<{
   description: string;
 }> = [
   {
+    slug: "general",
+    name: "General AI",
+    description: "Broad takes on AI trends, workflows, tools, and ideas."
+  },
+  {
     slug: "writing",
     name: "AI Writing",
     description: "Copywriting, long-form content, SEO briefs, and editing assistants."

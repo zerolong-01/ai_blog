@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import matter from "gray-matter";
@@ -8,6 +8,7 @@ import { ToolCategory, ToolReview, ToolReviewMeta } from "@/lib/types";
 const reviewsDirectory = path.join(process.cwd(), "content", "reviews");
 
 type ReviewFrontmatter = Omit<ToolReviewMeta, "rating"> & {
+  title?: string;
   rating: number | string;
 };
 
@@ -33,15 +34,26 @@ function normalizeList(value: unknown) {
 }
 
 function toToolReview(fileSlug: string, frontmatter: ReviewFrontmatter, content: string): ToolReview {
+  const name = String(frontmatter.name || frontmatter.title || fileSlug);
+  const summary =
+    String(frontmatter.summary || "").trim() ||
+    content
+      .replace(/^#+\s+/gm, "")
+      .split(/\n\s*\n/)
+      .map((block) => block.trim())
+      .find(Boolean)
+      ?.slice(0, 180) ||
+    "";
+
   return {
     slug: String(frontmatter.slug || fileSlug),
-    name: String(frontmatter.name || fileSlug),
+    name,
     tagline: String(frontmatter.tagline || ""),
-    category: frontmatter.category as ToolCategory,
+    category: (frontmatter.category as ToolCategory) || "general",
     website: String(frontmatter.website || ""),
     price: String(frontmatter.price || ""),
     rating: Number(frontmatter.rating || 0),
-    summary: String(frontmatter.summary || ""),
+    summary,
     bestFor: normalizeList(frontmatter.bestFor),
     pros: normalizeList(frontmatter.pros),
     cons: normalizeList(frontmatter.cons),
@@ -104,22 +116,25 @@ function slugify(value: string) {
 }
 
 function serializeReviewToMdx(review: ToolReview) {
-  return matter.stringify(review.content, {
+  const data: Record<string, unknown> = {
+    title: review.name,
     slug: review.slug,
-    name: review.name,
-    tagline: review.tagline,
-    category: review.category,
-    website: review.website,
-    price: review.price,
-    rating: review.rating,
-    summary: review.summary,
-    bestFor: review.bestFor,
-    pros: review.pros,
-    cons: review.cons,
-    features: review.features,
-    verdict: review.verdict,
     updatedAt: review.updatedAt
-  });
+  };
+
+  if (review.category && review.category !== "general") data.category = review.category;
+  if (review.summary) data.summary = review.summary;
+  if (review.tagline) data.tagline = review.tagline;
+  if (review.website) data.website = review.website;
+  if (review.price) data.price = review.price;
+  if (review.rating) data.rating = review.rating;
+  if (review.bestFor.length) data.bestFor = review.bestFor;
+  if (review.pros.length) data.pros = review.pros;
+  if (review.cons.length) data.cons = review.cons;
+  if (review.features.length) data.features = review.features;
+  if (review.verdict) data.verdict = review.verdict;
+
+  return matter.stringify(review.content, data);
 }
 
 async function resolveUniqueSlug(baseSlug: string) {
@@ -160,4 +175,17 @@ export async function createReviewFile(input: CreateReviewInput) {
   await writeFile(filePath, serializeReviewToMdx(review), "utf8");
 
   return review;
+}
+
+export async function deleteReviewFile(slug: string) {
+  const normalizedSlug = slugify(slug);
+
+  if (!normalizedSlug) {
+    throw new Error("A valid slug is required.");
+  }
+
+  const filePath = path.join(reviewsDirectory, `${normalizedSlug}.mdx`);
+  await unlink(filePath);
+
+  return normalizedSlug;
 }

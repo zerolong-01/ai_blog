@@ -5,14 +5,14 @@ export default function HomePage() {
     <section className="minimalHero">
       <div className="container minimalHeroGrid">
         <div className="minimalHeroCopy">
-          <span className="eyebrow">Independent AI library</span>
-          <h1>Find the right AI tools.</h1>
+          <span className="eyebrow">Independent AI blog</span>
+          <h1>Thoughtful writing about AI.</h1>
           <p className="heroCopy">
-            A clean place to explore useful AI products by category, purpose, and workflow.
+            Notes on tools, workflows, trends, and the broader ideas shaping how people use AI.
           </p>
           <div className="ctaRow">
             <Link href="/tools" className="primaryButton">
-              Get started
+              Read the blog
             </Link>
           </div>
         </div>

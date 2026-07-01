@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/tools", label: "Reviews" },
+  { href: "/tools", label: "Blog" },
   { href: "/categories", label: "Categories" },
   { href: "/search", label: "Search" }
 ] satisfies Array<{ href: Route; label: string }>;
@@ -31,7 +31,7 @@ export function Header() {
         <div className="navActions">
           <ThemeToggle />
           <Link href="/tools" className="navCta">
-            Get started
+            Read blog
           </Link>
         </div>
       </div>
