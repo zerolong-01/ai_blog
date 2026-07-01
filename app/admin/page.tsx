@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { deletePostAction } from "@/app/admin/actions";
+import { deletePostAction, logoutAdminAction } from "@/app/admin/actions";
+import { AdminLoginForm } from "@/components/admin-login-form";
+import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
@@ -15,6 +17,24 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPage() {
+  const authenticated = await isAdminAuthenticated();
+
+  if (!authenticated) {
+    return (
+      <section className="container pageShell adminShell">
+        <div className="pageIntro adminIntro">
+          <span className="eyebrow">Admin</span>
+          <h1>Sign in</h1>
+          <p>Enter the admin password to manage published posts.</p>
+        </div>
+
+        <div className="adminLoginCard">
+          <AdminLoginForm />
+        </div>
+      </section>
+    );
+  }
+
   const posts = await getAllReviewMeta();
 
   return (
@@ -32,6 +52,11 @@ export default async function AdminPage() {
         <Link href="/tools/write" className="primaryButton">
           Write post
         </Link>
+        <form action={logoutAdminAction}>
+          <button type="submit" className="secondaryButton">
+            Sign out
+          </button>
+        </form>
       </div>
 
       <div className="adminList">
