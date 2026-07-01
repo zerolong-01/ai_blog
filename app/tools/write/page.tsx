@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function WriteReviewPage() {
   return (
-    <section className="container pageShell">
+    <section className="container pageShell writePageShell">
       <div className="feedTabs" role="navigation" aria-label="Review tabs">
         <Link href="/tools" className="feedTab">
           Blog

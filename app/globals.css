@@ -364,6 +364,46 @@ h3 {
   padding: 1rem 0 3rem;
 }
 
+.blogShell,
+.writePageShell {
+  width: min(1280px, calc(100% - 2rem));
+}
+
+.blogShell .pageIntro,
+.writePageShell .pageIntro,
+.reviewHeaderSimple,
+.writeMainSolo,
+.feedList,
+.postBody,
+.postBackLink {
+  margin-inline: auto;
+}
+
+.blogTopBar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.adminShell {
+  width: min(1100px, calc(100% - 2rem));
+}
+
+.adminIntro,
+.adminToolbar,
+.adminList {
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+.adminToolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
 .feedTabs {
   display: flex;
   align-items: center;
@@ -394,18 +434,20 @@ h3 {
 }
 
 .writeMainSolo {
-  max-width: 760px;
+  width: min(100%, 980px);
 }
 
 .feedList {
   display: grid;
   gap: 1.25rem;
+  max-width: 980px;
 }
 
 .feedCard,
 .editorCard {
   padding: 1.75rem 0;
   border-bottom: 1px solid var(--border);
+  text-align: center;
 }
 
 .feedCard:first-child,
@@ -434,6 +476,7 @@ h3 {
   font-size: 0.92rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  justify-content: center;
 }
 
 .feedTitleLink:hover {
@@ -441,8 +484,22 @@ h3 {
   text-underline-offset: 0.12em;
 }
 
+.feedCard h2,
+.reviewHeaderSimple h1,
+.blogShell .pageIntro h1,
+.writePageShell .pageIntro h1 {
+  max-width: 16ch;
+  margin-inline: auto;
+}
+
+.feedCard h2 {
+  max-width: 24ch;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
 .feedSummary {
-  max-width: 62ch;
+  max-width: 78ch;
+  margin-inline: auto;
 }
 
 .feedFooter {
@@ -452,6 +509,7 @@ h3 {
 .editorForm {
   display: grid;
   gap: 1.5rem;
+  max-width: 980px;
 }
 
 .formGrid {
@@ -506,9 +564,62 @@ h3 {
   color: var(--muted);
 }
 
+.adminList {
+  display: grid;
+  gap: 1rem;
+}
+
+.adminCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.adminCardBody {
+  min-width: 0;
+}
+
+.adminMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin-bottom: 0.5rem;
+}
+
+.adminDeleteForm {
+  flex-shrink: 0;
+}
+
+.adminDeleteButton {
+  border-radius: 999px;
+  border: 1px solid rgba(180, 35, 24, 0.28);
+  background: rgba(180, 35, 24, 0.08);
+  color: #b42318;
+  padding: 0.8rem 1.1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.adminDeleteButton:hover {
+  background: rgba(180, 35, 24, 0.14);
+}
+
+.writePageShell .pageIntro p,
+.blogShell .pageIntro p {
+  max-width: 58ch;
+  margin-inline: auto;
+}
+
 .proseReview {
   line-height: 1.75;
-  max-width: 760px;
+  max-width: 920px;
 }
 
 .postBody {
@@ -517,6 +628,7 @@ h3 {
 
 .postBackLink {
   margin-top: 2rem;
+  text-align: center;
 }
 
 .proseReview h2,
@@ -605,6 +717,7 @@ h3 {
 
 .reviewHeaderSimple {
   margin-bottom: 0.5rem;
+  text-align: center;
 }
 
 .footerLinks {
@@ -716,6 +829,27 @@ h3 {
   .feedFooter {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .adminCard,
+  .adminToolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .feedCard,
+  .reviewHeaderSimple {
+    text-align: left;
+  }
+
+  .feedCard h2,
+  .reviewHeaderSimple h1,
+  .blogShell .pageIntro h1,
+  .writePageShell .pageIntro h1,
+  .feedSummary,
+  .writePageShell .pageIntro p,
+  .blogShell .pageIntro p {
+    margin-inline: 0;
   }
 
   .formGrid {

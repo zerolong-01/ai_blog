@@ -17,20 +17,16 @@ export default async function ToolsPage() {
   const tools = await getAllReviewMeta();
 
   return (
-    <section className="container pageShell">
-      <div className="feedTabs" role="navigation" aria-label="Review tabs">
-        <Link href="/tools" className="feedTab feedTabActive">
-          Blog
-        </Link>
-        <Link href="/tools/write" className="feedTab">
-          Write
-        </Link>
-      </div>
-
-      <div className="pageIntro">
-        <span className="eyebrow">AI writing</span>
-        <h1>Posts on tools, workflows, and ideas.</h1>
-        <p>Short essays and notes about AI, without the product-review framing.</p>
+    <section className="container pageShell blogShell">
+      <div className="blogTopBar">
+        <div className="feedTabs" role="navigation" aria-label="Blog tabs">
+          <Link href="/tools" className="feedTab feedTabActive">
+            Posts
+          </Link>
+          <Link href="/tools/write" className="feedTab">
+            Write
+          </Link>
+        </div>
       </div>
 
       <div className="feedList">
@@ -38,7 +34,6 @@ export default async function ToolsPage() {
           <article key={tool.slug} className="feedCard">
             <div className="feedMeta">
               <span>{formatDate(tool.updatedAt)}</span>
-              {tool.category !== "general" ? <span>{tool.category}</span> : null}
             </div>
             <h2>
               <Link href={`/tools/${tool.slug}`} className="feedTitleLink">

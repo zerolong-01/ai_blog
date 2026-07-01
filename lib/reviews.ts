@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import matter from "gray-matter";
@@ -175,4 +175,17 @@ export async function createReviewFile(input: CreateReviewInput) {
   await writeFile(filePath, serializeReviewToMdx(review), "utf8");
 
   return review;
+}
+
+export async function deleteReviewFile(slug: string) {
+  const normalizedSlug = slugify(slug);
+
+  if (!normalizedSlug) {
+    throw new Error("A valid slug is required.");
+  }
+
+  const filePath = path.join(reviewsDirectory, `${normalizedSlug}.mdx`);
+  await unlink(filePath);
+
+  return normalizedSlug;
 }
