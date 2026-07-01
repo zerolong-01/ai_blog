@@ -36,7 +36,7 @@ export function SearchPanel({ tools }: SearchPanelProps) {
   return (
     <div className="searchShell">
       <label className="searchLabel" htmlFor="tool-search">
-        Search by tool name, use case, or category
+        Search by title, summary, or category
       </label>
       <input
         id="tool-search"
@@ -44,7 +44,7 @@ export function SearchPanel({ tools }: SearchPanelProps) {
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Try: writing, video, coding, SEO..."
+        placeholder="Try: agents, writing, image generation..."
       />
 
       <p className="searchCount">{results.length} result(s)</p>

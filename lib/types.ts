@@ -1,4 +1,5 @@
 export type ToolCategory =
+  | "general"
   | "writing"
   | "productivity"
   | "design"

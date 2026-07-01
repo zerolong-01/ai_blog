@@ -5,8 +5,8 @@ import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Search AI Tools",
-  description: "Search AI tool reviews by name, category, use case, and standout features.",
+  title: "Search AI Posts",
+  description: "Search blog posts about AI tools, workflows, and ideas.",
   alternates: {
     canonical: absoluteUrl("/search")
   }
@@ -19,8 +19,8 @@ export default async function SearchPage() {
     <section className="container pageShell">
       <div className="pageIntro">
         <span className="eyebrow">Search</span>
-        <h1>Find the right AI tool faster</h1>
-        <p>Readers can search by use case, which improves utility and supports deeper internal discovery.</p>
+        <h1>Search the blog</h1>
+        <p>Look through posts by title, summary, and topic.</p>
       </div>
 
       <SearchPanel tools={tools} />

@@ -388,16 +388,13 @@ h3 {
   color: var(--bg);
 }
 
-.feedShell,
-.writeShell {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.72fr);
-  gap: 2rem;
-}
-
 .feedMain,
 .writeMain {
   min-width: 0;
+}
+
+.writeMainSolo {
+  max-width: 760px;
 }
 
 .feedList {
@@ -452,44 +449,6 @@ h3 {
   justify-content: space-between;
 }
 
-.feedSidebar,
-.writeSidebar {
-  display: grid;
-  gap: 1.25rem;
-  align-content: start;
-}
-
-.archiveList {
-  display: grid;
-  gap: 1rem;
-}
-
-.archiveLink {
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.archiveLink strong {
-  font-size: 1rem;
-}
-
-.editorCard h2 {
-  margin-bottom: 1rem;
-}
-
-.editorLead {
-  font-size: 1.05rem;
-  max-width: 58ch;
-}
-
-.editorSection {
-  margin-top: 2rem;
-}
-
-.editorSection p {
-  max-width: 60ch;
-}
-
 .editorForm {
   display: grid;
   gap: 1.5rem;
@@ -542,8 +501,22 @@ h3 {
   justify-content: flex-start;
 }
 
+.editorHint,
+.postDate {
+  color: var(--muted);
+}
+
 .proseReview {
   line-height: 1.75;
+  max-width: 760px;
+}
+
+.postBody {
+  padding-top: 0.5rem;
+}
+
+.postBackLink {
+  margin-top: 2rem;
 }
 
 .proseReview h2,
@@ -630,39 +603,8 @@ h3 {
   margin-bottom: 1.5rem;
 }
 
-.reviewLayout {
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.72fr);
-}
-
-.reviewContent {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.reviewSidebar {
-  display: grid;
-  gap: 1.25rem;
-  align-content: start;
-}
-
-.dualGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.detailList {
-  margin: 0;
-}
-
-.detailList div + div {
-  margin-top: 0.9rem;
-}
-
-.detailList dt {
-  font-size: 0.92rem;
-}
-
-.detailList dd {
-  margin: 0.25rem 0 0;
+.reviewHeaderSimple {
+  margin-bottom: 0.5rem;
 }
 
 .footerLinks {
@@ -707,12 +649,8 @@ h3 {
 
 @media (max-width: 960px) {
   .heroGrid,
-  .reviewLayout,
-  .feedShell,
-  .writeShell,
   .cardGrid,
-  .categoryGrid,
-  .dualGrid {
+  .categoryGrid {
     grid-template-columns: 1fr;
   }
 
@@ -775,8 +713,7 @@ h3 {
   }
 
   .feedMeta,
-  .feedFooter,
-  .archiveLink {
+  .feedFooter {
     flex-direction: column;
     align-items: flex-start;
   }
