@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
 
 import { categories } from "@/data/categories";
-import { getAllReviewMeta } from "@/lib/reviews";
+import { getAllReviewMeta, getReviewsByCategory } from "@/lib/reviews";
 import { siteConfig } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tools = await getAllReviewMeta();
-  const staticRoutes = ["", "/tools", "/categories", "/search", "/privacy-policy", "/terms", "/disclaimer", "/contact"].map((path) => ({
+  const staticRoutes = ["", "/tools", "/categories", "/contact", "/privacy-policy", "/terms", "/disclaimer"].map((path) => ({
     url: `${siteConfig.url}${path}`,
     lastModified: new Date()
   }));
@@ -16,10 +16,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(tool.updatedAt)
   }));
 
-  const categoryRoutes = categories.map((category) => ({
-    url: `${siteConfig.url}/categories/${category.slug}`,
-    lastModified: new Date()
-  }));
+  const categoryReviewLists = await Promise.all(
+    categories.map(async (category) => ({
+      category,
+      reviews: await getReviewsByCategory(category.slug)
+    }))
+  );
+
+  const categoryRoutes = categoryReviewLists
+    .filter(({ reviews }) => reviews.length > 0)
+    .map(({ category, reviews }) => ({
+      url: `${siteConfig.url}/categories/${category.slug}`,
+      lastModified: new Date(
+        reviews.reduce((latest, review) => {
+          return new Date(review.updatedAt).getTime() > latest.getTime() ? new Date(review.updatedAt) : latest;
+        }, new Date(0))
+      )
+    }));
 
   return [...staticRoutes, ...toolRoutes, ...categoryRoutes];
 }
