@@ -1,11 +1,11 @@
-import { createHmac, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, scryptSync, timingSafeEqual } from "node:crypto";
 
 import { cookies } from "next/headers";
 
 const ADMIN_COOKIE_NAME = "stacked_ai_admin";
 const ADMIN_COOKIE_PAYLOAD = "authorized";
 
-function getEnv(name: "ADMIN_PASSWORD_SALT" | "ADMIN_PASSWORD_HASH" | "ADMIN_SESSION_SECRET") {
+function getEnv(name: "ADMIN_ID_HASH" | "ADMIN_PASSWORD_SALT" | "ADMIN_PASSWORD_HASH" | "ADMIN_SESSION_SECRET") {
   const value = process.env[name];
 
   if (!value) {
@@ -36,6 +36,13 @@ export function verifyAdminPassword(password: string) {
   const salt = getEnv("ADMIN_PASSWORD_SALT");
   const expectedHash = getEnv("ADMIN_PASSWORD_HASH");
   const derivedHash = scryptSync(password, salt, 64).toString("hex");
+
+  return safeEqualHex(derivedHash, expectedHash);
+}
+
+export function verifyAdminId(id: string) {
+  const expectedHash = getEnv("ADMIN_ID_HASH");
+  const derivedHash = createHash("sha256").update(id).digest("hex");
 
   return safeEqualHex(derivedHash, expectedHash);
 }

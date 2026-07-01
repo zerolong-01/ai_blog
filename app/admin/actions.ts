@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { clearAdminSession, createAdminSession, requireAdminAuth, verifyAdminPassword } from "@/lib/admin-auth";
+import { clearAdminSession, createAdminSession, requireAdminAuth, verifyAdminId, verifyAdminPassword } from "@/lib/admin-auth";
 import { deleteReviewFile } from "@/lib/reviews";
 
 export type AdminAuthState = {
@@ -19,10 +19,11 @@ export async function loginAdminAction(
   formData: FormData
 ): Promise<AdminAuthState> {
   void previousState;
+  const id = String(formData.get("id") || "").trim();
   const password = String(formData.get("password") || "");
 
-  if (!verifyAdminPassword(password)) {
-    return { error: "Incorrect password." };
+  if (!verifyAdminId(id) || !verifyAdminPassword(password)) {
+    return { error: "Incorrect admin id or password." };
   }
 
   await createAdminSession();

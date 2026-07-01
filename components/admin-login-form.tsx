@@ -25,6 +25,10 @@ export function AdminLoginForm() {
   return (
     <form action={formAction} className="adminLoginForm">
       <label className="fieldGroup fieldSpanFull">
+        <span>Admin id</span>
+        <input name="id" type="text" autoComplete="username" required />
+      </label>
+      <label className="fieldGroup fieldSpanFull">
         <span>Admin password</span>
         <input name="password" type="password" autoComplete="current-password" required />
       </label>
