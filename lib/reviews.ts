@@ -468,6 +468,16 @@ export async function getAllReviews() {
 }
 
 export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
+  if (isGithubStorageEnabled()) {
+    await ensureReviewsDirectory();
+    const filenames = await getAllReviewFilenames();
+    const reviews = await Promise.all(filenames.map(readReviewMetaFromFile));
+
+    return reviews.sort((left, right) => {
+      return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+    });
+  }
+
   if (!reviewMetaCache) {
     reviewMetaCache = (async () => {
       await ensureReviewsDirectory();
@@ -488,6 +498,21 @@ export async function getReviewBySlug(slug: string) {
 
   if (!normalizedSlug) {
     return undefined;
+  }
+
+  if (isGithubStorageEnabled()) {
+    try {
+      return await readReviewFromFile(`${normalizedSlug}.mdx`);
+    } catch (error) {
+      const isMissingFile =
+        error instanceof Error && "code" in error && (error as NodeJS.ErrnoException).code === "ENOENT";
+
+      if (isMissingFile) {
+        return undefined;
+      }
+
+      throw error;
+    }
   }
 
   const cachedReview = reviewContentCache.get(normalizedSlug);
