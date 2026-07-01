@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ReviewForm } from "@/components/review-form";
+import { getReviewStorageStatus } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -13,6 +14,8 @@ export const metadata: Metadata = {
 };
 
 export default function WriteReviewPage() {
+  const storageStatus = getReviewStorageStatus();
+
   return (
     <section className="container pageShell writePageShell">
       <div className="feedTabs" role="navigation" aria-label="Review tabs">
@@ -32,6 +35,13 @@ export default function WriteReviewPage() {
             Draft a publishable article for Stacked AI using a headline and markdown body. Posts are saved into the
             site library and immediately become part of the blog.
           </p>
+          <p className="editorHint">
+            Storage:{" "}
+            {storageStatus.mode === "github"
+              ? `GitHub persistent storage is active (${storageStatus.target}).`
+              : `Posts are currently using ${storageStatus.target}.`}
+          </p>
+          {storageStatus.error ? <p className="formError">{storageStatus.error}</p> : null}
         </div>
 
         <ReviewForm />
