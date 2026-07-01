@@ -645,6 +645,12 @@ h3 {
   text-align: center;
 }
 
+.legalShell .pageIntro,
+.legalContent {
+  max-width: 860px;
+  margin-inline: auto;
+}
+
 .proseReview h2,
 .proseReview h3 {
   margin-top: 1.8rem;
