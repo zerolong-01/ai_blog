@@ -135,7 +135,7 @@ function getGithubStorageConfig(): GithubStorageConfig | null {
   };
 }
 
-function useGithubStorage() {
+function isGithubStorageEnabled() {
   return getGithubStorageConfig() !== null;
 }
 
@@ -324,7 +324,7 @@ function normalizeStorageError(error: unknown, action: "write" | "delete", stora
 }
 
 async function ensureReviewsDirectory() {
-  if (useGithubStorage()) {
+  if (isGithubStorageEnabled()) {
     return;
   }
 
@@ -361,7 +361,7 @@ async function listMdxFiles(directory: string) {
 }
 
 async function getAllReviewFilenames() {
-  if (useGithubStorage()) {
+  if (isGithubStorageEnabled()) {
     const entries = await listGithubReviewFiles();
     return entries.map((entry) => entry.name);
   }
@@ -381,7 +381,7 @@ async function getAllReviewFilenames() {
 async function readReviewFromFile(filename: string) {
   let source: string | null = null;
 
-  if (useGithubStorage()) {
+  if (isGithubStorageEnabled()) {
     const file = await getGithubReviewFile(filename);
 
     if (!file?.content || file.encoding !== "base64") {
@@ -564,7 +564,7 @@ export async function createReviewFile(input: CreateReviewInput) {
 
   await ensureReviewsDirectory();
 
-  if (useGithubStorage()) {
+  if (isGithubStorageEnabled()) {
     await writeGithubReviewFile(fileName, source);
     invalidateReviewCache(slug);
     return review;
@@ -613,7 +613,7 @@ export async function deleteReviewFile(slug: string) {
 
   const fileName = `${normalizedSlug}.mdx`;
 
-  if (useGithubStorage()) {
+  if (isGithubStorageEnabled()) {
     await deleteGithubReviewFile(fileName);
     invalidateReviewCache(normalizedSlug);
     return normalizedSlug;

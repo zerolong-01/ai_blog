@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { renderMarkdown } from "@/lib/markdown";
-import { getAllReviewMeta, getReviewBySlug } from "@/lib/reviews";
+import { getReviewBySlug } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate, slugToTitle } from "@/lib/utils";
 
@@ -11,10 +11,7 @@ type ToolPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateStaticParams() {
-  const tools = await getAllReviewMeta();
-  return tools.map((tool) => ({ slug: tool.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
   const { slug } = await params;
