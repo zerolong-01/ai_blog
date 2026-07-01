@@ -6,7 +6,7 @@ import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Write a Post",
-  description: "Write a new AI blog post in markdown.",
+  description: "Create a new Stacked AI post in markdown and publish it to the blog.",
   alternates: {
     canonical: absoluteUrl("/tools/write")
   }
@@ -26,9 +26,12 @@ export default function WriteReviewPage() {
 
       <div className="writeMain writeMainSolo">
         <div className="pageIntro">
-          <span className="eyebrow">New post</span>
-          <h1>Write a new post</h1>
-          <p>Just a title and markdown content. Nothing extra.</p>
+          <span className="eyebrow">Editorial</span>
+          <h1>Create a new post</h1>
+          <p>
+            Draft a publishable article for Stacked AI using a headline and markdown body. Posts are saved into the
+            site library and immediately become part of the blog.
+          </p>
         </div>
 
         <ReviewForm />

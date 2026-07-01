@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   description: "Search blog posts about AI tools, workflows, and ideas.",
   alternates: {
     canonical: absoluteUrl("/search")
+  },
+  robots: {
+    index: false,
+    follow: true
   }
 };
 

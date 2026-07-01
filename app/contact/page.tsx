@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { absoluteUrl } from "@/lib/site";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Contact Stacked AI.",
+  description: "Get in touch with Stacked AI for corrections, partnerships, and editorial questions.",
   alternates: {
     canonical: absoluteUrl("/contact")
   }
@@ -16,16 +17,37 @@ export default function ContactPage() {
       <div className="pageIntro">
         <span className="eyebrow">Contact</span>
         <h1>Contact</h1>
-        <p>Reach out for editorial questions, corrections, or business inquiries.</p>
+        <p>Reach out about corrections, partnerships, licensing, or general editorial questions.</p>
       </div>
 
       <div className="legalContent proseReview">
         <p>
-          For now, the simplest contact method is email. Replace the placeholder below with your preferred public
-          address before launch.
+          Stacked AI is an editorial site focused on AI tools, workflows, and broader shifts in how people use AI at
+          work. If you notice something inaccurate, want to share a product update, or need to discuss a business
+          matter, email is the fastest route.
         </p>
+
+        <h2>Email</h2>
         <p>
-          Email: <a href="mailto:hello@example.com">hello@example.com</a>
+          <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>
+        </p>
+
+        <h2>What to include</h2>
+        <p>
+          For corrections, include the page URL and the specific detail that needs updating. For partnerships or media
+          inquiries, include your timeline, relevant links, and the best way to reach you back.
+        </p>
+
+        <h2>Response expectations</h2>
+        <p>
+          We aim to review messages within a few business days. Time-sensitive issues such as factual corrections or
+          legal notices are prioritized.
+        </p>
+
+        <h2>Related pages</h2>
+        <p>
+          For more context on how the site operates, review the <Link href="/privacy-policy">Privacy Policy</Link>,{" "}
+          <Link href="/terms">Terms</Link>, and <Link href="/disclaimer">Disclaimer</Link>.
         </p>
       </div>
     </section>
