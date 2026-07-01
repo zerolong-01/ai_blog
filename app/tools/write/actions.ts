@@ -24,15 +24,17 @@ export async function createReviewAction(
     return { error: "Title and content are required." };
   }
 
-  try {
-    const summary =
-      content
-        .replace(/^#+\s+/gm, "")
-        .split(/\n\s*\n/)
-        .map((block) => block.trim())
-        .find(Boolean)
-        ?.slice(0, 180) || "";
+  const summary =
+    content
+      .replace(/^#+\s+/gm, "")
+      .split(/\n\s*\n/)
+      .map((block) => block.trim())
+      .find(Boolean)
+      ?.slice(0, 180) || "";
 
+  let slug: string;
+
+  try {
     const review = await createReviewFile({
       slug: String(formData.get("slug") || ""),
       name,
@@ -50,16 +52,18 @@ export async function createReviewAction(
       content
     });
 
-    revalidatePath("/tools");
-    revalidatePath("/search");
-    revalidatePath("/categories");
-    revalidatePath(`/tools/${review.slug}`);
-    revalidatePath("/sitemap.xml");
-
-    redirect(`/tools/${review.slug}`);
+    slug = review.slug;
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : previousState.error || "Failed to create the review."
     };
   }
+
+  revalidatePath("/tools");
+  revalidatePath("/search");
+  revalidatePath("/categories");
+  revalidatePath(`/tools/${slug}`);
+  revalidatePath("/sitemap.xml");
+
+  redirect(`/tools/${slug}`);
 }
