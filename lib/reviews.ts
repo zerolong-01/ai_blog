@@ -42,6 +42,10 @@ export type ReviewStorageStatus = {
   target: string;
 };
 
+type GithubReadOptions = {
+  suppressNotFound?: boolean;
+};
+
 function normalizeList(value: unknown) {
   if (Array.isArray(value)) {
     return value.map(String).map((item) => item.trim()).filter(Boolean);
@@ -197,6 +201,14 @@ async function parseGithubResponse<T>(response: Response) {
   throw new Error(message);
 }
 
+function isGithubNotFoundError(error: unknown) {
+  return error instanceof Error && error.message.includes("status 404");
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function githubRequest<T>(pathname: string, init?: RequestInit) {
   const config = getGithubStorageConfig();
 
@@ -232,7 +244,7 @@ async function listGithubReviewFiles() {
   return entries.filter((entry) => entry.type === "file" && entry.name.endsWith(".mdx"));
 }
 
-async function getGithubReviewFile(filename: string) {
+async function getGithubReviewFile(filename: string, options: GithubReadOptions = {}) {
   const config = getGithubStorageConfig();
 
   if (!config) {
@@ -244,12 +256,28 @@ async function getGithubReviewFile(filename: string) {
       `/repos/${config.repo}/contents/${config.path}/${filename}?ref=${encodeURIComponent(config.branch)}`
     );
   } catch (error) {
-    if (error instanceof Error && error.message.includes("status 404")) {
+    if (options.suppressNotFound && isGithubNotFoundError(error)) {
       return null;
     }
 
     throw error;
   }
+}
+
+async function waitForGithubReviewFile(filename: string, attempts = 6, delayMs = 400) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const file = await getGithubReviewFile(filename, { suppressNotFound: true });
+
+    if (file?.content && file.encoding === "base64") {
+      return file;
+    }
+
+    if (attempt < attempts - 1) {
+      await sleep(delayMs);
+    }
+  }
+
+  throw new Error(`The post was saved but is not readable from GitHub yet: ${filename}`);
 }
 
 async function writeGithubReviewFile(filename: string, source: string) {
@@ -259,7 +287,7 @@ async function writeGithubReviewFile(filename: string, source: string) {
     throw new Error("GitHub storage is not configured.");
   }
 
-  const existingFile = await getGithubReviewFile(filename);
+  const existingFile = await getGithubReviewFile(filename, { suppressNotFound: true });
   const body = {
     message: `Add or update review ${filename}`,
     content: Buffer.from(source, "utf8").toString("base64"),
@@ -274,6 +302,8 @@ async function writeGithubReviewFile(filename: string, source: string) {
     },
     body: JSON.stringify(body)
   });
+
+  await waitForGithubReviewFile(filename);
 }
 
 async function deleteGithubReviewFile(filename: string) {
@@ -283,7 +313,7 @@ async function deleteGithubReviewFile(filename: string) {
     throw new Error("GitHub storage is not configured.");
   }
 
-  const existingFile = await getGithubReviewFile(filename);
+  const existingFile = await getGithubReviewFile(filename, { suppressNotFound: true });
 
   if (!existingFile) {
     const error = new Error(`Review file not found: ${filename}`) as NodeJS.ErrnoException;
@@ -438,6 +468,16 @@ export async function getAllReviews() {
 }
 
 export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
+  if (isGithubStorageEnabled()) {
+    await ensureReviewsDirectory();
+    const filenames = await getAllReviewFilenames();
+    const reviews = await Promise.all(filenames.map(readReviewMetaFromFile));
+
+    return reviews.sort((left, right) => {
+      return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+    });
+  }
+
   if (!reviewMetaCache) {
     reviewMetaCache = (async () => {
       await ensureReviewsDirectory();
@@ -458,6 +498,21 @@ export async function getReviewBySlug(slug: string) {
 
   if (!normalizedSlug) {
     return undefined;
+  }
+
+  if (isGithubStorageEnabled()) {
+    try {
+      return await readReviewFromFile(`${normalizedSlug}.mdx`);
+    } catch (error) {
+      const isMissingFile =
+        error instanceof Error && "code" in error && (error as NodeJS.ErrnoException).code === "ENOENT";
+
+      if (isMissingFile) {
+        return undefined;
+      }
+
+      throw error;
+    }
   }
 
   const cachedReview = reviewContentCache.get(normalizedSlug);
