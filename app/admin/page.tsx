@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { deletePostAction, logoutAdminAction } from "@/app/admin/actions";
 import { AdminLoginForm } from "@/components/admin-login-form";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getAdminConfigError, isAdminAuthenticated } from "@/lib/admin-auth";
 import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPage() {
+  const configError = getAdminConfigError();
   const authenticated = await isAdminAuthenticated();
 
   if (!authenticated) {
@@ -29,6 +30,7 @@ export default async function AdminPage() {
         </div>
 
         <div className="adminLoginCard">
+          {configError ? <p className="formError">{configError} Add them in your deployment environment settings.</p> : null}
           <AdminLoginForm />
         </div>
       </section>

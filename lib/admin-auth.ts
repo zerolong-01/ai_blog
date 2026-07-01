@@ -5,7 +5,16 @@ import { cookies } from "next/headers";
 const ADMIN_COOKIE_NAME = "stacked_ai_admin";
 const ADMIN_COOKIE_PAYLOAD = "authorized";
 
-function getEnv(name: "ADMIN_ID_HASH" | "ADMIN_PASSWORD_SALT" | "ADMIN_PASSWORD_HASH" | "ADMIN_SESSION_SECRET") {
+type AdminEnvName = "ADMIN_ID_HASH" | "ADMIN_PASSWORD_SALT" | "ADMIN_PASSWORD_HASH" | "ADMIN_SESSION_SECRET";
+
+const ADMIN_ENV_NAMES: AdminEnvName[] = [
+  "ADMIN_ID_HASH",
+  "ADMIN_PASSWORD_SALT",
+  "ADMIN_PASSWORD_HASH",
+  "ADMIN_SESSION_SECRET"
+];
+
+function getEnv(name: AdminEnvName) {
   const value = process.env[name];
 
   if (!value) {
@@ -15,7 +24,25 @@ function getEnv(name: "ADMIN_ID_HASH" | "ADMIN_PASSWORD_SALT" | "ADMIN_PASSWORD_
   return value;
 }
 
+function isValidHex(value: string) {
+  return value.length > 0 && value.length % 2 === 0 && /^[0-9a-f]+$/i.test(value);
+}
+
+export function getAdminConfigError() {
+  const missing = ADMIN_ENV_NAMES.filter((name) => !process.env[name]);
+
+  if (missing.length > 0) {
+    return `Missing admin environment variables: ${missing.join(", ")}.`;
+  }
+
+  return null;
+}
+
 function safeEqualHex(left: string, right: string) {
+  if (!isValidHex(left) || !isValidHex(right)) {
+    return false;
+  }
+
   const leftBuffer = Buffer.from(left, "hex");
   const rightBuffer = Buffer.from(right, "hex");
 
@@ -33,6 +60,10 @@ function signAdminPayload() {
 }
 
 export function verifyAdminPassword(password: string) {
+  if (getAdminConfigError()) {
+    return false;
+  }
+
   const salt = getEnv("ADMIN_PASSWORD_SALT");
   const expectedHash = getEnv("ADMIN_PASSWORD_HASH");
   const derivedHash = scryptSync(password, salt, 64).toString("hex");
@@ -41,6 +72,10 @@ export function verifyAdminPassword(password: string) {
 }
 
 export function verifyAdminId(id: string) {
+  if (getAdminConfigError()) {
+    return false;
+  }
+
   const expectedHash = getEnv("ADMIN_ID_HASH");
   const derivedHash = createHash("sha256").update(id).digest("hex");
 
@@ -55,10 +90,20 @@ export async function isAdminAuthenticated() {
     return false;
   }
 
-  return safeEqualHex(session, signAdminPayload());
+  try {
+    return safeEqualHex(session, signAdminPayload());
+  } catch {
+    return false;
+  }
 }
 
 export async function requireAdminAuth() {
+  const configError = getAdminConfigError();
+
+  if (configError) {
+    throw new Error(configError);
+  }
+
   const authenticated = await isAdminAuthenticated();
 
   if (!authenticated) {
@@ -67,6 +112,12 @@ export async function requireAdminAuth() {
 }
 
 export async function createAdminSession() {
+  const configError = getAdminConfigError();
+
+  if (configError) {
+    throw new Error(configError);
+  }
+
   const cookieStore = await cookies();
 
   cookieStore.set(ADMIN_COOKIE_NAME, signAdminPayload(), {
