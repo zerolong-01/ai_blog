@@ -1,4 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+import { absoluteUrl } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: "AI Blog",
+  description: "Thoughtful writing about AI tools, workflows, trends, and the broader ideas shaping how people use AI.",
+  alternates: {
+    canonical: absoluteUrl("/")
+  }
+};
 
 export default function HomePage() {
   return (
