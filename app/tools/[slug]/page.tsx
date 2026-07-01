@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AdSlot } from "@/components/ad-slot";
-import { getToolBySlug, tools } from "@/data/tools";
+import { renderMarkdown } from "@/lib/markdown";
+import { getAllReviewMeta, getReviewBySlug } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate, slugToTitle } from "@/lib/utils";
 
@@ -12,12 +13,13 @@ type ToolPageProps = {
 };
 
 export async function generateStaticParams() {
+  const tools = await getAllReviewMeta();
   return tools.map((tool) => ({ slug: tool.slug }));
 }
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const tool = getToolBySlug(slug);
+  const tool = await getReviewBySlug(slug);
 
   if (!tool) {
     return {
@@ -42,11 +44,13 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 
 export default async function ToolPage({ params }: ToolPageProps) {
   const { slug } = await params;
-  const tool = getToolBySlug(slug);
+  const tool = await getReviewBySlug(slug);
 
   if (!tool) {
     notFound();
   }
+
+  const reviewContent = await renderMarkdown(tool.content);
 
   return (
     <article className="container reviewShell">
@@ -111,6 +115,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
                 <li key={item}>{item}</li>
               ))}
             </ul>
+          </div>
+
+          <div className="contentCard proseReview">
+            <div dangerouslySetInnerHTML={{ __html: reviewContent }} />
           </div>
         </section>
 

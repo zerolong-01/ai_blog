@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react";
 
 import { ToolCard } from "@/components/tool-card";
-import { ToolReview } from "@/lib/types";
+import { ToolReviewMeta } from "@/lib/types";
 
 type SearchPanelProps = {
-  tools: ToolReview[];
+  tools: ToolReviewMeta[];
 };
 
 export function SearchPanel({ tools }: SearchPanelProps) {

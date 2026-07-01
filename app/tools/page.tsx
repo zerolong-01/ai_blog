@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { tools } from "@/data/tools";
+import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
 
@@ -13,7 +13,9 @@ export const metadata: Metadata = {
   }
 };
 
-export default function ToolsPage() {
+export default async function ToolsPage() {
+  const tools = await getAllReviewMeta();
+
   return (
     <section className="container pageShell">
       <div className="feedTabs" role="navigation" aria-label="Review tabs">

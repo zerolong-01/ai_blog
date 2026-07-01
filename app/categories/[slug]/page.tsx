@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ToolCard } from "@/components/tool-card";
-import { categories, getToolsByCategory } from "@/data/tools";
+import { categories } from "@/data/categories";
+import { getReviewsByCategory } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
 type CategoryPageProps = {
@@ -38,7 +39,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
-  const relatedTools = getToolsByCategory(slug);
+  const relatedTools = await getReviewsByCategory(slug);
 
   return (
     <section className="container pageShell">

@@ -490,6 +490,83 @@ h3 {
   max-width: 60ch;
 }
 
+.editorForm {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.fieldGroup {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.fieldGroup span {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.fieldGroup input,
+.fieldGroup select,
+.fieldGroup textarea {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+  padding: 0.95rem 1rem;
+}
+
+.fieldGroup textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.fieldSpanFull {
+  grid-column: 1 / -1;
+}
+
+.formError {
+  margin: 0;
+  color: #b42318;
+}
+
+.editorActions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.proseReview {
+  line-height: 1.75;
+}
+
+.proseReview h2,
+.proseReview h3 {
+  margin-top: 1.8rem;
+}
+
+.proseReview p,
+.proseReview ul,
+.proseReview ol {
+  margin: 0.85rem 0;
+}
+
+.proseReview ul,
+.proseReview ol {
+  padding-left: 1.3rem;
+}
+
+.proseReview a {
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+
 .cardGrid,
 .categoryGrid {
   display: grid;
@@ -702,6 +779,10 @@ h3 {
   .archiveLink {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
   }
 
   .minimalArtwork {
