@@ -4,6 +4,8 @@ import { categories } from "@/data/categories";
 import { getAllReviewMeta, getReviewsByCategory } from "@/lib/reviews";
 import { siteConfig } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tools = await getAllReviewMeta();
   const staticRoutes = ["", "/tools", "/categories", "/contact", "/privacy-policy", "/terms", "/disclaimer"].map((path) => ({
