@@ -3,7 +3,7 @@ export const siteConfig = {
   shortName: "Stacked AI",
   description:
     "A clean editorial blog covering AI tools, workflows, ideas, and the shifts shaping how people work.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.example.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://toolaiatlas.com",
   locale: "en_US",
   creator: "Stacked AI",
   keywords: [
