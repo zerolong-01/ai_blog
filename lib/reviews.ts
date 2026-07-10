@@ -1,4 +1,5 @@
 import { ToolReview, ToolReviewMeta } from "@/lib/types";
+import { getBundledReviewBySlug, getBundledReviewMeta, getBundledReviews } from "@/lib/reviews-fallback";
 import {
   deletePost,
   getDatabaseStorageStatus,
@@ -69,15 +70,24 @@ export function getReviewStorageStatus(): ReviewStorageStatus {
 }
 
 export async function getAllReviews() {
-  const records = await getPostRecords();
-  return records.map(toReview);
+  try {
+    const records = await getPostRecords();
+    return records.map(toReview);
+  } catch {
+    return getBundledReviews();
+  }
 }
 
 export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
   if (!reviewMetaCache) {
     reviewMetaCache = (async () => {
-      const records = await getPostRecords();
-      return records.map(toReviewMeta);
+      try {
+        const records = await getPostRecords();
+        return records.map(toReviewMeta).map((review) => ({ ...review }));
+      } catch {
+        const fallbackReviews = await getBundledReviewMeta();
+        return fallbackReviews.map((review) => ({ ...review }));
+      }
     })();
   }
 
@@ -98,8 +108,13 @@ export async function getReviewBySlug(slug: string) {
   }
 
   const reviewPromise = (async () => {
-    const record = await getPostRecordBySlug(normalizedSlug);
-    return record ? toReview(record) : undefined;
+    try {
+      const record = await getPostRecordBySlug(normalizedSlug);
+      return record ? { ...toReview(record) } : undefined;
+    } catch {
+      const fallbackReview = await getBundledReviewBySlug(normalizedSlug);
+      return fallbackReview ? { ...fallbackReview } : undefined;
+    }
   })();
 
   reviewContentCache.set(normalizedSlug, reviewPromise);

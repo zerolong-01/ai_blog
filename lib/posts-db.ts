@@ -220,7 +220,12 @@ export function getDatabase() {
   if (!database) {
     ensureDatabaseDirectory();
     database = new DatabaseSync(getDatabasePath());
-    database.exec("PRAGMA journal_mode = WAL;");
+
+    try {
+      database.exec("PRAGMA journal_mode = WAL;");
+    } catch {
+      database.exec("PRAGMA journal_mode = DELETE;");
+    }
   }
 
   return database;
