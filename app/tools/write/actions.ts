@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { requireAdminAuth } from "@/lib/admin-auth";
 import { createReviewFile } from "@/lib/reviews";
 
 export type ReviewFormState = {
@@ -17,6 +18,8 @@ export async function createReviewAction(
   previousState: ReviewFormState = initialState,
   formData: FormData
 ): Promise<ReviewFormState> {
+  await requireAdminAuth();
+
   const name = String(formData.get("name") || "").trim();
   const content = String(formData.get("content") || "").trim();
 
