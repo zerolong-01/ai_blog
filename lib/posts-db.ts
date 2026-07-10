@@ -38,6 +38,30 @@ type PostRecord = {
 let initialized = false;
 let initializationPromise: Promise<void> | null = null;
 
+function toDateOnly(value: string | Date | undefined) {
+  if (!value) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  const trimmedValue = value.trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedValue)) {
+    return trimmedValue;
+  }
+
+  const parsedDate = new Date(trimmedValue);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  return parsedDate.toISOString().slice(0, 10);
+}
+
 function getConnectionString() {
   const connectionString = process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim();
 
@@ -120,6 +144,8 @@ function toToolReview(fileSlug: string, frontmatter: ReviewFrontmatter, content:
 }
 
 function mapRecordToReview(record: PostRecord): ToolReview {
+  const updatedAt = toDateOnly(record.updated_at);
+
   return {
     slug: record.slug,
     name: record.name,
@@ -134,7 +160,7 @@ function mapRecordToReview(record: PostRecord): ToolReview {
     cons: parseList(record.cons),
     features: parseList(record.features),
     verdict: record.verdict,
-    updatedAt: record.updated_at,
+    updatedAt,
     content: record.content
   };
 }
@@ -162,6 +188,7 @@ async function importBundledMdxPosts() {
 
 async function upsertPost(review: ToolReview) {
   const sql = getSql();
+  const normalizedUpdatedAt = toDateOnly(review.updatedAt);
 
   await sql`
     INSERT INTO posts (
@@ -196,8 +223,8 @@ async function upsertPost(review: ToolReview) {
       ${JSON.stringify(review.features)}::jsonb,
       ${review.verdict},
       ${review.content},
-      ${review.updatedAt}::date,
-      ${review.updatedAt}::date
+      ${normalizedUpdatedAt}::date,
+      ${normalizedUpdatedAt}::date
     )
     ON CONFLICT (slug) DO UPDATE SET
       name = EXCLUDED.name,
