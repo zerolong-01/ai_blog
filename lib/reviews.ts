@@ -63,7 +63,7 @@ export function getReviewStorageStatus(): ReviewStorageStatus {
   const storage = getDatabaseStorageStatus();
 
   return {
-    error: null,
+    error: storage.target === "DATABASE_URL not configured" ? "DATABASE_URL is missing." : null,
     mode: storage.mode,
     target: storage.target
   };
