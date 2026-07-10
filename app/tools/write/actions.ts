@@ -93,6 +93,8 @@ export async function updateReviewAction(
     return { error: "Slug, title, and content are required." };
   }
 
+  let updatedSlug: string;
+
   try {
     const review = await updateReviewFile({
       slug,
@@ -111,11 +113,13 @@ export async function updateReviewAction(
       content
     });
 
-    revalidatePostPaths(review.slug);
-    redirect(`/tools/${review.slug}`);
+    updatedSlug = review.slug;
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : previousState.error || "Failed to update the post."
     };
   }
+
+  revalidatePostPaths(updatedSlug);
+  redirect(`/tools/${updatedSlug}`);
 }
