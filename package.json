@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "gray-matter": "^4.0.3",
     "marked": "^18.0.5",
     "next": "15.5.19",
