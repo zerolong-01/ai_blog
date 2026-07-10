@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { Route } from "next";
 
 import { deletePostAction, logoutAdminAction } from "@/app/admin/actions";
 import { AdminLoginForm } from "@/components/admin-login-form";
@@ -79,12 +80,17 @@ export default async function AdminPage() {
               {post.summary ? <p className="feedSummary">{post.summary}</p> : null}
             </div>
 
-            <form action={deletePostAction} className="adminDeleteForm">
-              <input type="hidden" name="slug" value={post.slug} />
-              <button type="submit" className="adminDeleteButton">
-                Delete
-              </button>
-            </form>
+            <div className="adminActions">
+              <Link href={`/tools/${post.slug}/edit` as Route} className="secondaryButton">
+                Edit
+              </Link>
+              <form action={deletePostAction} className="adminDeleteForm">
+                <input type="hidden" name="slug" value={post.slug} />
+                <button type="submit" className="adminDeleteButton">
+                  Delete
+                </button>
+              </form>
+            </div>
           </article>
         ))}
       </div>

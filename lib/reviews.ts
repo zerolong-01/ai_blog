@@ -20,6 +20,10 @@ type CreateReviewInput = Omit<ToolReviewMeta, "slug" | "updatedAt"> & {
   updatedAt?: string;
 };
 
+type UpdateReviewInput = Omit<ToolReviewMeta, "updatedAt"> & {
+  content: string;
+};
+
 export type ReviewStorageStatus = {
   error: string | null;
   mode: "database";
@@ -139,6 +143,33 @@ export async function createReviewFile(input: CreateReviewInput) {
     ...input,
     slug,
     updatedAt: input.updatedAt || new Date().toISOString().slice(0, 10),
+    rating: Number(input.rating),
+    content: input.content.trim()
+  };
+
+  await insertPost(review);
+  invalidateReviewCache(slug);
+
+  return review;
+}
+
+export async function updateReviewFile(input: UpdateReviewInput) {
+  const slug = slugify(input.slug);
+
+  if (!slug) {
+    throw new Error("A valid slug is required.");
+  }
+
+  const existingReview = await getReviewBySlug(slug);
+
+  if (!existingReview) {
+    throw new Error(`Post not found: ${slug}`);
+  }
+
+  const review: ToolReview = {
+    ...input,
+    slug,
+    updatedAt: new Date().toISOString().slice(0, 10),
     rating: Number(input.rating),
     content: input.content.trim()
   };
