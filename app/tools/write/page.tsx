@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { ReviewForm } from "@/components/review-form";
+import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getReviewStorageStatus } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
@@ -13,7 +15,13 @@ export const metadata: Metadata = {
   }
 };
 
-export default function WriteReviewPage() {
+export default async function WriteReviewPage() {
+  const authenticated = await isAdminAuthenticated();
+
+  if (!authenticated) {
+    redirect("/admin");
+  }
+
   const storageStatus = getReviewStorageStatus();
 
   return (
@@ -36,10 +44,7 @@ export default function WriteReviewPage() {
             site library and immediately become part of the blog.
           </p>
           <p className="editorHint">
-            Storage:{" "}
-            {storageStatus.mode === "github"
-              ? `GitHub persistent storage is active (${storageStatus.target}).`
-              : `Posts are currently using ${storageStatus.target}.`}
+            Storage: Posts are persisted in the blog database at {storageStatus.target}.
           </p>
           {storageStatus.error ? <p className="formError">{storageStatus.error}</p> : null}
         </div>

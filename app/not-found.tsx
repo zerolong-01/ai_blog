@@ -6,9 +6,9 @@ export default function NotFound() {
       <div className="pageIntro">
         <span className="eyebrow">404</span>
         <h1>Page not found</h1>
-        <p>The page you requested does not exist. Try heading back to the review library.</p>
+        <p>The page you requested does not exist. Try heading back to the blog archive.</p>
         <Link href="/tools" className="primaryButton">
-          Browse reviews
+          Browse posts
         </Link>
       </div>
     </section>

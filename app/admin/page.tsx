@@ -46,7 +46,7 @@ export default async function AdminPage() {
       <div className="pageIntro adminIntro">
         <span className="eyebrow">Admin</span>
         <h1>Manage posts</h1>
-        <p>Delete published posts from the MDX library.</p>
+        <p>Delete published posts from the blog database.</p>
       </div>
 
       <div className="adminToolbar">
