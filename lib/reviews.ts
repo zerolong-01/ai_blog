@@ -11,9 +11,6 @@ import {
   toReviewMeta
 } from "@/lib/posts-db";
 
-let reviewMetaCache: Promise<ToolReviewMeta[]> | null = null;
-const reviewContentCache = new Map<string, Promise<ToolReview | undefined>>();
-
 type CreateReviewInput = Omit<ToolReviewMeta, "slug" | "updatedAt"> & {
   content: string;
   slug?: string;
@@ -29,17 +26,6 @@ export type ReviewStorageStatus = {
   mode: "database";
   target: string;
 };
-
-function invalidateReviewCache(slug?: string) {
-  reviewMetaCache = null;
-
-  if (slug) {
-    reviewContentCache.delete(slug);
-    return;
-  }
-
-  reviewContentCache.clear();
-}
 
 function slugify(value: string) {
   return value
@@ -83,19 +69,13 @@ export async function getAllReviews() {
 }
 
 export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
-  if (!reviewMetaCache) {
-    reviewMetaCache = (async () => {
-      try {
-        const records = await getPostRecords();
-        return records.map(toReviewMeta).map((review) => ({ ...review }));
-      } catch {
-        const fallbackReviews = await getBundledReviewMeta();
-        return fallbackReviews.map((review) => ({ ...review }));
-      }
-    })();
+  try {
+    const records = await getPostRecords();
+    return records.map(toReviewMeta).map((review) => ({ ...review }));
+  } catch {
+    const fallbackReviews = await getBundledReviewMeta();
+    return fallbackReviews.map((review) => ({ ...review }));
   }
-
-  return reviewMetaCache;
 }
 
 export async function getReviewBySlug(slug: string) {
@@ -105,25 +85,13 @@ export async function getReviewBySlug(slug: string) {
     return undefined;
   }
 
-  const cachedReview = reviewContentCache.get(normalizedSlug);
-
-  if (cachedReview) {
-    return cachedReview;
+  try {
+    const record = await getPostRecordBySlug(normalizedSlug);
+    return record ? { ...toReview(record) } : undefined;
+  } catch {
+    const fallbackReview = await getBundledReviewBySlug(normalizedSlug);
+    return fallbackReview ? { ...fallbackReview } : undefined;
   }
-
-  const reviewPromise = (async () => {
-    try {
-      const record = await getPostRecordBySlug(normalizedSlug);
-      return record ? { ...toReview(record) } : undefined;
-    } catch {
-      const fallbackReview = await getBundledReviewBySlug(normalizedSlug);
-      return fallbackReview ? { ...fallbackReview } : undefined;
-    }
-  })();
-
-  reviewContentCache.set(normalizedSlug, reviewPromise);
-
-  return reviewPromise;
 }
 
 export async function getReviewsByCategory(category: string) {
@@ -148,7 +116,6 @@ export async function createReviewFile(input: CreateReviewInput) {
   };
 
   await insertPost(review);
-  invalidateReviewCache(slug);
 
   return review;
 }
@@ -175,7 +142,6 @@ export async function updateReviewFile(input: UpdateReviewInput) {
   };
 
   await insertPost(review);
-  invalidateReviewCache(slug);
 
   return review;
 }
@@ -192,8 +158,6 @@ export async function deleteReviewFile(slug: string) {
   if (changes === 0) {
     throw new Error(`Post not found: ${normalizedSlug}`);
   }
-
-  invalidateReviewCache(normalizedSlug);
 
   return normalizedSlug;
 }

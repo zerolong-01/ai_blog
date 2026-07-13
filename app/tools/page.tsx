@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
@@ -17,6 +18,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ToolsPage() {
   const tools = await getAllReviewMeta();
+  const authenticated = await isAdminAuthenticated();
 
   return (
     <section className="container pageShell blogShell">
@@ -25,9 +27,11 @@ export default async function ToolsPage() {
           <Link href="/tools" className="feedTab feedTabActive">
             Posts
           </Link>
-          <Link href="/tools/write" className="feedTab">
-            Write
-          </Link>
+          {authenticated ? (
+            <Link href="/tools/write" className="feedTab">
+              Write
+            </Link>
+          ) : null}
         </div>
       </div>
 

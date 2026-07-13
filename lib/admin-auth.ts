@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 const ADMIN_COOKIE_NAME = "stacked_ai_admin";
 const ADMIN_COOKIE_PAYLOAD = "authorized";
+const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
 type AdminEnvName = "ADMIN_ID_HASH" | "ADMIN_PASSWORD_SALT" | "ADMIN_PASSWORD_HASH" | "ADMIN_SESSION_SECRET";
 
@@ -122,6 +123,7 @@ export async function createAdminSession() {
 
   cookieStore.set(ADMIN_COOKIE_NAME, signAdminPayload(), {
     httpOnly: true,
+    maxAge: ADMIN_SESSION_MAX_AGE,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/"
