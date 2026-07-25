@@ -364,6 +364,41 @@ h3 {
   padding: 1rem 0 3rem;
 }
 
+.homeSection {
+  padding: 4rem 0;
+  scroll-margin-top: 6rem;
+}
+
+.homeSection + .homeSection {
+  border-top: 1px solid var(--border);
+}
+
+.homeSection .sectionHeading {
+  margin-bottom: 1.5rem;
+}
+
+.homeSection .sectionHeading h2 {
+  margin-bottom: 0;
+}
+
+.categoryCount,
+.emptyState {
+  color: var(--muted);
+}
+
+.categoryCount {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.emptyState {
+  padding: 2rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
 .blogShell,
 .writePageShell {
   width: min(1280px, calc(100% - 2rem));
