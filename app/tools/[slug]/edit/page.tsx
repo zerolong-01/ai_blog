@@ -68,7 +68,9 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
           initialValues={{
             slug: post.slug,
             name: post.name,
-            content: post.content
+            content: post.content,
+            seriesName: post.seriesName,
+            seriesOrder: post.seriesOrder
           }}
         />
       </div>

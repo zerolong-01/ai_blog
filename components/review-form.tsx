@@ -17,6 +17,8 @@ type ReviewFormProps = {
     slug?: string;
     name?: string;
     content?: string;
+    seriesName?: string;
+    seriesOrder?: number;
   };
   intro?: ReactNode;
 };
@@ -49,6 +51,30 @@ export function ReviewForm({ mode = "create", initialValues, intro }: ReviewForm
             defaultValue={initialValues?.name || ""}
             maxLength={INPUT_LIMITS.postTitle}
             required
+          />
+        </label>
+
+        <label className="fieldGroup">
+          <span>Series name (optional)</span>
+          <input
+            name="seriesName"
+            type="text"
+            placeholder="Building a practical AI workflow"
+            defaultValue={initialValues?.seriesName || ""}
+            maxLength={INPUT_LIMITS.postSeriesName}
+          />
+        </label>
+
+        <label className="fieldGroup">
+          <span>Part number (optional)</span>
+          <input
+            name="seriesOrder"
+            type="number"
+            min={1}
+            max={INPUT_LIMITS.postSeriesOrder}
+            step={1}
+            placeholder="1"
+            defaultValue={initialValues?.seriesOrder}
           />
         </label>
 

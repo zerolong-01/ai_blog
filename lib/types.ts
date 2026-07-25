@@ -23,6 +23,8 @@ export type ToolReviewMeta = {
   author: string;
   publishedAt: string;
   updatedAt: string;
+  seriesName?: string;
+  seriesOrder?: number;
 };
 
 export type ToolReview = ToolReviewMeta & {

@@ -36,6 +36,29 @@ function revalidatePostPaths(slug: string) {
   revalidatePath("/sitemap.xml");
 }
 
+function getSeriesFields(formData: FormData) {
+  const seriesName = String(formData.get("seriesName") || "").trim();
+  const rawSeriesOrder = String(formData.get("seriesOrder") || "").trim();
+
+  if (!seriesName && !rawSeriesOrder) {
+    return { seriesName: undefined, seriesOrder: undefined };
+  }
+
+  const seriesOrder = Number(rawSeriesOrder);
+
+  if (
+    !seriesName ||
+    seriesName.length > INPUT_LIMITS.postSeriesName ||
+    !Number.isInteger(seriesOrder) ||
+    seriesOrder < 1 ||
+    seriesOrder > INPUT_LIMITS.postSeriesOrder
+  ) {
+    throw new Error("Series name and a valid part number must be provided together.");
+  }
+
+  return { seriesName, seriesOrder };
+}
+
 export async function createReviewAction(
   previousState: ReviewFormState = initialState,
   formData: FormData
@@ -55,6 +78,7 @@ export async function createReviewAction(
   let slug: string;
 
   try {
+    const series = getSeriesFields(formData);
     const review = await createReviewFile({
       slug: String(formData.get("slug") || ""),
       name,
@@ -69,6 +93,7 @@ export async function createReviewAction(
       pros: [],
       cons: [],
       features: [],
+      ...series,
       content
     });
 
@@ -109,6 +134,7 @@ export async function updateReviewAction(
   let updatedSlug: string;
 
   try {
+    const series = getSeriesFields(formData);
     const review = await updateReviewFile({
       slug,
       name,
@@ -123,6 +149,7 @@ export async function updateReviewAction(
       pros: [],
       cons: [],
       features: [],
+      ...series,
       content
     });
 
