@@ -289,7 +289,12 @@ export async function ensurePostsDatabase() {
     initializationPromise = initializeDatabase();
   }
 
-  await initializationPromise;
+  try {
+    await initializationPromise;
+  } catch (error) {
+    initializationPromise = null;
+    throw error;
+  }
 }
 
 export async function getPostRecords() {

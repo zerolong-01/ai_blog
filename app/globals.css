@@ -364,6 +364,41 @@ h3 {
   padding: 1rem 0 3rem;
 }
 
+.homeSection {
+  padding: 4rem 0;
+  scroll-margin-top: 6rem;
+}
+
+.homeSection + .homeSection {
+  border-top: 1px solid var(--border);
+}
+
+.homeSection .sectionHeading {
+  margin-bottom: 1.5rem;
+}
+
+.homeSection .sectionHeading h2 {
+  margin-bottom: 0;
+}
+
+.categoryCount,
+.emptyState {
+  color: var(--muted);
+}
+
+.categoryCount {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.emptyState {
+  padding: 2rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
 .blogShell,
 .writePageShell {
   width: min(1280px, calc(100% - 2rem));
@@ -583,6 +618,30 @@ h3 {
   gap: 1rem;
 }
 
+.storageNotice {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 900px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.storageNoticeHealthy {
+  background: color-mix(in srgb, var(--art) 10%, var(--surface));
+}
+
+.storageNoticeError {
+  border-color: rgba(180, 35, 24, 0.32);
+  background: rgba(180, 35, 24, 0.08);
+}
+
+.storageNotice code {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
 .adminCard {
   display: flex;
   align-items: center;
@@ -608,7 +667,24 @@ h3 {
 }
 
 .adminDeleteForm {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   flex-shrink: 0;
+}
+
+.deleteConfirmation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.deleteConfirmation input {
+  width: 1rem;
+  height: 1rem;
 }
 
 .adminActions {

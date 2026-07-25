@@ -5,7 +5,7 @@ import type { Route } from "next";
 import { deletePostAction, logoutAdminAction } from "@/app/admin/actions";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { getAdminConfigError, isAdminAuthenticated } from "@/lib/admin-auth";
-import { getAllReviewMeta } from "@/lib/reviews";
+import { getAllReviewMetaWithStatus } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ export default async function AdminPage() {
     );
   }
 
-  const posts = await getAllReviewMeta();
+  const { posts, storage } = await getAllReviewMetaWithStatus();
 
   return (
     <section className="container pageShell adminShell">
@@ -62,6 +62,16 @@ export default async function AdminPage() {
             Sign out
           </button>
         </form>
+      </div>
+
+      <div className={`storageNotice ${storage.error ? "storageNoticeError" : "storageNoticeHealthy"}`} role="status">
+        <strong>{storage.error ? "Database unavailable" : "Database connected"}</strong>
+        <span>
+          {storage.error
+            ? ` Showing ${storage.postCount ?? 0} bundled fallback posts. Publishing is unavailable until the database recovers.`
+            : ` ${storage.postCount ?? 0} published posts in ${storage.target}.`}
+        </span>
+        {storage.error ? <code>{storage.error}</code> : null}
       </div>
 
       <div className="adminList">
@@ -86,6 +96,10 @@ export default async function AdminPage() {
               </Link>
               <form action={deletePostAction} className="adminDeleteForm">
                 <input type="hidden" name="slug" value={post.slug} />
+                <label className="deleteConfirmation">
+                  <input type="checkbox" name="confirmation" value={post.slug} required />
+                  <span>Confirm delete</span>
+                </label>
                 <button type="submit" className="adminDeleteButton">
                   Delete
                 </button>
