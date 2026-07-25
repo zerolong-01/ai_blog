@@ -618,6 +618,30 @@ h3 {
   gap: 1rem;
 }
 
+.storageNotice {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 900px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.storageNoticeHealthy {
+  background: color-mix(in srgb, var(--art) 10%, var(--surface));
+}
+
+.storageNoticeError {
+  border-color: rgba(180, 35, 24, 0.32);
+  background: rgba(180, 35, 24, 0.08);
+}
+
+.storageNotice code {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
 .adminCard {
   display: flex;
   align-items: center;

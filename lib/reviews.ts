@@ -23,9 +23,18 @@ type UpdateReviewInput = Omit<ToolReviewMeta, "updatedAt"> & {
 
 export type ReviewStorageStatus = {
   error: string | null;
-  mode: "database";
+  mode: "database" | "fallback";
+  postCount?: number;
   target: string;
 };
+
+function reportStorageFailure(operation: string, error: unknown) {
+  console.error("[review-storage]", {
+    operation,
+    message: error instanceof Error ? error.message : String(error),
+    timestamp: new Date().toISOString()
+  });
+}
 
 function slugify(value: string) {
   return value
@@ -63,7 +72,8 @@ export async function getAllReviews() {
   try {
     const records = await getPostRecords();
     return records.map(toReview);
-  } catch {
+  } catch (error) {
+    reportStorageFailure("getAllReviews", error);
     return getBundledReviews();
   }
 }
@@ -72,9 +82,42 @@ export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
   try {
     const records = await getPostRecords();
     return records.map(toReviewMeta).map((review) => ({ ...review }));
-  } catch {
+  } catch (error) {
+    reportStorageFailure("getAllReviewMeta", error);
     const fallbackReviews = await getBundledReviewMeta();
     return fallbackReviews.map((review) => ({ ...review }));
+  }
+}
+
+export async function getAllReviewMetaWithStatus(): Promise<{
+  posts: ToolReviewMeta[];
+  storage: ReviewStorageStatus;
+}> {
+  try {
+    const records = await getPostRecords();
+
+    return {
+      posts: records.map(toReviewMeta).map((review) => ({ ...review })),
+      storage: {
+        error: null,
+        mode: "database",
+        postCount: records.length,
+        target: "Neon Postgres"
+      }
+    };
+  } catch (error) {
+    reportStorageFailure("getAllReviewMetaWithStatus", error);
+    const posts = (await getBundledReviewMeta()).map((review) => ({ ...review }));
+
+    return {
+      posts,
+      storage: {
+        error: error instanceof Error ? error.message : "Unknown database error.",
+        mode: "fallback",
+        postCount: posts.length,
+        target: "Bundled emergency content"
+      }
+    };
   }
 }
 
@@ -88,7 +131,8 @@ export async function getReviewBySlug(slug: string) {
   try {
     const record = await getPostRecordBySlug(normalizedSlug);
     return record ? { ...toReview(record) } : undefined;
-  } catch {
+  } catch (error) {
+    reportStorageFailure("getReviewBySlug", error);
     const fallbackReview = await getBundledReviewBySlug(normalizedSlug);
     return fallbackReview ? { ...fallbackReview } : undefined;
   }
