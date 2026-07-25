@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminAuth } from "@/lib/admin-auth";
+import { exceedsUtf8Bytes, INPUT_LIMITS } from "@/lib/input-validation";
 import { createReviewFile, updateReviewFile } from "@/lib/reviews";
 
 export type ReviewFormState = {
@@ -45,6 +46,9 @@ export async function createReviewAction(
 
   if (!name || !content) {
     return { error: "Title and content are required." };
+  }
+  if (name.length > INPUT_LIMITS.postTitle || exceedsUtf8Bytes(content, INPUT_LIMITS.postContentBytes)) {
+    return { error: "Title or content exceeds the allowed size." };
   }
 
   let slug: string;
@@ -91,6 +95,13 @@ export async function updateReviewAction(
 
   if (!slug || !name || !content) {
     return { error: "Slug, title, and content are required." };
+  }
+  if (
+    slug.length > INPUT_LIMITS.postSlug ||
+    name.length > INPUT_LIMITS.postTitle ||
+    exceedsUtf8Bytes(content, INPUT_LIMITS.postContentBytes)
+  ) {
+    return { error: "Slug, title, or content exceeds the allowed size." };
   }
 
   let updatedSlug: string;

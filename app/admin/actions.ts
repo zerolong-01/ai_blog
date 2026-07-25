@@ -11,6 +11,7 @@ import {
   getAdminLoginLimit,
   recordAdminLoginFailure
 } from "@/lib/admin-rate-limit";
+import { INPUT_LIMITS } from "@/lib/input-validation";
 import { deleteReviewFile } from "@/lib/reviews";
 
 export type AdminAuthState = {
@@ -48,6 +49,9 @@ export async function loginAdminAction(
   void previousState;
   const id = String(formData.get("id") || "").trim();
   const password = String(formData.get("password") || "");
+  if (id.length > INPUT_LIMITS.adminId || password.length > INPUT_LIMITS.adminPassword) {
+    return { error: "Incorrect admin id or password." };
+  }
   const requestIdentity = await getRequestIdentity();
   const limit = await getAdminLoginLimit(requestIdentity.rateLimitKey);
 

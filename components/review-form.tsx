@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createReviewAction, type ReviewFormState, updateReviewAction } from "@/app/tools/write/actions";
+import { INPUT_LIMITS } from "@/lib/input-validation";
 
 const initialState: ReviewFormState = {
   error: null
@@ -46,6 +47,7 @@ export function ReviewForm({ mode = "create", initialValues, intro }: ReviewForm
             type="text"
             placeholder="What AI agents are getting right in 2026"
             defaultValue={initialValues?.name || ""}
+            maxLength={INPUT_LIMITS.postTitle}
             required
           />
         </label>
@@ -55,6 +57,7 @@ export function ReviewForm({ mode = "create", initialValues, intro }: ReviewForm
           <textarea
             name="content"
             rows={20}
+            maxLength={INPUT_LIMITS.postContentBytes}
             defaultValue={initialValues?.content || ""}
             placeholder={`## Opening thought\n\nWrite freely in markdown.\n\n- bullet points work\n- headings work\n- links work too\n\n[OpenAI](https://openai.com)`}
             required
