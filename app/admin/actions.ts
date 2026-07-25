@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createHash } from "node:crypto";
 
 import { clearAdminSession, createAdminSession, requireAdminAuth, verifyAdminId, verifyAdminPassword } from "@/lib/admin-auth";
+import { logAdminEvent } from "@/lib/admin-audit";
 import {
   clearAdminLoginFailures,
   getAdminLoginLimit,
@@ -34,14 +35,6 @@ async function getRequestIdentity() {
   };
 }
 
-function logAdminEvent(event: string, details: Record<string, string | number>) {
-  console.info("[admin-audit]", {
-    event,
-    ...details,
-    timestamp: new Date().toISOString()
-  });
-}
-
 export async function loginAdminAction(
   previousState: AdminAuthState = initialState,
   formData: FormData
@@ -53,12 +46,17 @@ export async function loginAdminAction(
     return { error: "Incorrect admin id or password." };
   }
   const requestIdentity = await getRequestIdentity();
-  const limit = await getAdminLoginLimit(requestIdentity.rateLimitKey);
+  const accountKey = createHash("sha256").update(`account:${id.toLowerCase()}`).digest("hex");
+  const limits = await Promise.all([
+    getAdminLoginLimit(requestIdentity.rateLimitKey),
+    getAdminLoginLimit(accountKey)
+  ]);
+  const limit = limits.find((item) => item.limited) || limits[0];
 
   if (limit.limited) {
-    logAdminEvent("login_rate_limited", {
+    await logAdminEvent("login_rate_limited", {
       client: requestIdentity.fingerprint,
-      retryAfterSeconds: limit.retryAfterSeconds
+      outcome: "blocked"
     });
     return { error: `Too many sign-in attempts. Try again in ${Math.ceil(limit.retryAfterSeconds / 60)} minute(s).` };
   }
@@ -68,16 +66,19 @@ export async function loginAdminAction(
   const passwordMatches = verifyAdminPassword(password);
 
   if (!idMatches || !passwordMatches) {
-    const updatedLimit = await recordAdminLoginFailure(requestIdentity.rateLimitKey);
-    logAdminEvent("login_failed", {
+    const [updatedLimit] = await Promise.all([
+      recordAdminLoginFailure(requestIdentity.rateLimitKey),
+      recordAdminLoginFailure(accountKey)
+    ]);
+    await logAdminEvent("login_failed", {
       client: requestIdentity.fingerprint,
-      limited: updatedLimit.limited ? 1 : 0
+      outcome: updatedLimit.limited ? "blocked" : "failure"
     });
     return { error: "Incorrect admin id or password." };
   }
 
-  await clearAdminLoginFailures(requestIdentity.rateLimitKey);
-  logAdminEvent("login_succeeded", { client: requestIdentity.fingerprint });
+  await Promise.all([clearAdminLoginFailures(requestIdentity.rateLimitKey), clearAdminLoginFailures(accountKey)]);
+  await logAdminEvent("login_succeeded", { client: requestIdentity.fingerprint, outcome: "success" });
   await createAdminSession();
   redirect("/admin");
 }
@@ -102,7 +103,7 @@ export async function deletePostAction(formData: FormData) {
   }
 
   await deleteReviewFile(slug);
-  logAdminEvent("post_deleted", { slug });
+  await logAdminEvent("post_deleted", { target: slug, outcome: "success" });
 
   revalidatePath("/admin");
   revalidatePath("/tools");

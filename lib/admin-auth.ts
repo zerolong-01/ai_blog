@@ -1,150 +1,82 @@
-import { createHash, createHmac, scryptSync, timingSafeEqual } from "node:crypto";
-
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { getDatabaseSql } from "@/lib/database";
 
-const ADMIN_COOKIE_NAME = "stacked_ai_admin";
-const ADMIN_COOKIE_PAYLOAD = "authorized";
-const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+const COOKIE = "stacked_ai_admin";
+const IDLE_MS = 24 * 60 * 60 * 1000;
+const ABSOLUTE_MS = 7 * 24 * 60 * 60 * 1000;
+type AdminEnvName = "ADMIN_ID_HASH" | "ADMIN_PASSWORD_SALT" | "ADMIN_PASSWORD_HASH";
+const ENV_NAMES: AdminEnvName[] = ["ADMIN_ID_HASH", "ADMIN_PASSWORD_SALT", "ADMIN_PASSWORD_HASH"];
 
-type AdminEnvName = "ADMIN_ID_HASH" | "ADMIN_PASSWORD_SALT" | "ADMIN_PASSWORD_HASH" | "ADMIN_SESSION_SECRET";
-
-const ADMIN_ENV_NAMES: AdminEnvName[] = [
-  "ADMIN_ID_HASH",
-  "ADMIN_PASSWORD_SALT",
-  "ADMIN_PASSWORD_HASH",
-  "ADMIN_SESSION_SECRET"
-];
-
-function getEnv(name: AdminEnvName) {
+function env(name: AdminEnvName) {
   const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is not configured.`);
-  }
-
+  if (!value) throw new Error(`${name} is not configured.`);
   return value;
 }
-
-function isValidHex(value: string) {
-  return value.length > 0 && value.length % 2 === 0 && /^[0-9a-f]+$/i.test(value);
-}
-
-export function getAdminConfigError() {
-  const missing = ADMIN_ENV_NAMES.filter((name) => !process.env[name]);
-
-  if (missing.length > 0) {
-    return `Missing admin environment variables: ${missing.join(", ")}.`;
-  }
-
-  return null;
-}
-
 function safeEqualHex(left: string, right: string) {
-  if (!isValidHex(left) || !isValidHex(right)) {
-    return false;
-  }
-
-  const leftBuffer = Buffer.from(left, "hex");
-  const rightBuffer = Buffer.from(right, "hex");
-
-  if (leftBuffer.length !== rightBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(leftBuffer, rightBuffer);
+  if (!/^[0-9a-f]+$/i.test(left) || !/^[0-9a-f]+$/i.test(right) || left.length !== right.length) return false;
+  return timingSafeEqual(Buffer.from(left, "hex"), Buffer.from(right, "hex"));
 }
-
-function signAdminSession(issuedAt: string) {
-  const secret = getEnv("ADMIN_SESSION_SECRET");
-  return createHmac("sha256", secret).update(`${ADMIN_COOKIE_PAYLOAD}:${issuedAt}`).digest("hex");
+function tokenHash(token: string) {
+  return createHash("sha256").update(token).digest("hex");
 }
-
+export function getAdminConfigError() {
+  const missing = ENV_NAMES.filter((name) => !process.env[name]);
+  return missing.length ? `Missing admin environment variables: ${missing.join(", ")}.` : null;
+}
 export function verifyAdminPassword(password: string) {
-  if (getAdminConfigError()) {
-    return false;
-  }
-
-  const salt = getEnv("ADMIN_PASSWORD_SALT");
-  const expectedHash = getEnv("ADMIN_PASSWORD_HASH");
-  const derivedHash = scryptSync(password, salt, 64).toString("hex");
-
-  return safeEqualHex(derivedHash, expectedHash);
+  if (getAdminConfigError()) return false;
+  return safeEqualHex(scryptSync(password, env("ADMIN_PASSWORD_SALT"), 64).toString("hex"), env("ADMIN_PASSWORD_HASH"));
 }
-
 export function verifyAdminId(id: string) {
-  if (getAdminConfigError()) {
-    return false;
-  }
-
-  const expectedHash = getEnv("ADMIN_ID_HASH");
-  const derivedHash = createHash("sha256").update(id).digest("hex");
-
-  return safeEqualHex(derivedHash, expectedHash);
+  if (getAdminConfigError()) return false;
+  return safeEqualHex(createHash("sha256").update(id).digest("hex"), env("ADMIN_ID_HASH"));
 }
-
 export async function isAdminAuthenticated() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
-
-  if (!session) {
-    return false;
-  }
-
+  const token = (await cookies()).get(COOKIE)?.value;
+  if (!token || token.length !== 64) return false;
   try {
-    const [issuedAtValue, signature] = session.split(".");
-    const issuedAt = Number(issuedAtValue);
-    const age = Date.now() - issuedAt;
-
-    if (
-      !issuedAtValue ||
-      !signature ||
-      !Number.isFinite(issuedAt) ||
-      age < -5 * 60 * 1000 ||
-      age > ADMIN_SESSION_MAX_AGE * 1000
-    ) {
-      return false;
-    }
-
-    return safeEqualHex(signature, signAdminSession(issuedAtValue));
+    const sql = getDatabaseSql();
+    const now = new Date();
+    const idleCutoff = new Date(now.getTime() - IDLE_MS);
+    const rows = await sql`
+      UPDATE admin_sessions SET last_seen_at = ${now.toISOString()}::timestamptz
+      WHERE token_hash = ${tokenHash(token)} AND expires_at > ${now.toISOString()}::timestamptz
+        AND last_seen_at > ${idleCutoff.toISOString()}::timestamptz
+      RETURNING token_hash
+    `;
+    return rows.length === 1;
   } catch {
     return false;
   }
 }
-
 export async function requireAdminAuth() {
-  const configError = getAdminConfigError();
-
-  if (configError) {
-    throw new Error(configError);
-  }
-
-  const authenticated = await isAdminAuthenticated();
-
-  if (!authenticated) {
-    throw new Error("Unauthorized");
-  }
+  const error = getAdminConfigError();
+  if (error) throw new Error(error);
+  if (!(await isAdminAuthenticated())) throw new Error("Unauthorized");
 }
-
 export async function createAdminSession() {
-  const configError = getAdminConfigError();
-
-  if (configError) {
-    throw new Error(configError);
-  }
-
-  const cookieStore = await cookies();
-  const issuedAt = Date.now().toString();
-
-  cookieStore.set(ADMIN_COOKIE_NAME, `${issuedAt}.${signAdminSession(issuedAt)}`, {
-    httpOnly: true,
-    maxAge: ADMIN_SESSION_MAX_AGE,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/"
+  const token = randomBytes(32).toString("hex");
+  const now = new Date();
+  const expires = new Date(now.getTime() + ABSOLUTE_MS);
+  const sql = getDatabaseSql();
+  await sql`DELETE FROM admin_sessions WHERE expires_at <= NOW() OR last_seen_at <= NOW() - INTERVAL '24 hours'`;
+  await sql`
+    INSERT INTO admin_sessions (token_hash, created_at, last_seen_at, expires_at)
+    VALUES (${tokenHash(token)}, ${now.toISOString()}::timestamptz, ${now.toISOString()}::timestamptz, ${expires.toISOString()}::timestamptz)
+  `;
+  (await cookies()).set(COOKIE, token, {
+    httpOnly: true, maxAge: ABSOLUTE_MS / 1000, sameSite: "strict",
+    secure: process.env.NODE_ENV === "production", path: "/", priority: "high"
   });
 }
-
 export async function clearAdminSession() {
-  const cookieStore = await cookies();
-  cookieStore.delete(ADMIN_COOKIE_NAME);
+  const store = await cookies();
+  const token = store.get(COOKIE)?.value;
+  if (token) {
+    try {
+      await getDatabaseSql()`DELETE FROM admin_sessions WHERE token_hash = ${tokenHash(token)}`;
+    } catch {}
+  }
+  store.delete(COOKIE);
 }

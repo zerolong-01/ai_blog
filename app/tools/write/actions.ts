@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminAuth } from "@/lib/admin-auth";
+import { logAdminEvent } from "@/lib/admin-audit";
 import { exceedsUtf8Bytes, INPUT_LIMITS } from "@/lib/input-validation";
 import { createReviewFile, updateReviewFile } from "@/lib/reviews";
 
@@ -79,6 +80,7 @@ export async function createReviewAction(
   }
 
   revalidatePostPaths(slug);
+  await logAdminEvent("post_created", { target: slug, outcome: "success" });
 
   redirect(`/tools/${slug}`);
 }
@@ -132,5 +134,6 @@ export async function updateReviewAction(
   }
 
   revalidatePostPaths(updatedSlug);
+  await logAdminEvent("post_updated", { target: updatedSlug, outcome: "success" });
   redirect(`/tools/${updatedSlug}`);
 }

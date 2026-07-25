@@ -30,15 +30,7 @@ async function getRateLimitSql() {
   const sql = neon(connectionString);
 
   if (!tablePromise) {
-    tablePromise = (async () => {
-      await sql`
-        CREATE TABLE IF NOT EXISTS admin_login_attempts (
-          client_key TEXT PRIMARY KEY,
-          failures INTEGER NOT NULL,
-          window_started_at TIMESTAMPTZ NOT NULL
-        )
-      `;
-    })();
+    tablePromise = Promise.resolve();
   }
 
   try {
@@ -113,6 +105,7 @@ export async function getAdminLoginLimit(key: string, now = Date.now()) {
     }
 
     const cutoff = new Date(now - LOGIN_WINDOW_MS).toISOString();
+    await sql`DELETE FROM admin_login_attempts WHERE window_started_at <= ${cutoff}::timestamptz`;
     const rows = (await sql`
       SELECT failures, window_started_at::text
       FROM admin_login_attempts
