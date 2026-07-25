@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { categories } from "@/data/categories";
+import { staticPages } from "@/data/static-pages";
 import { getAllReviewMeta, getReviewsByCategory } from "@/lib/reviews";
 import { siteConfig } from "@/lib/site";
 
@@ -8,9 +9,9 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tools = await getAllReviewMeta();
-  const staticRoutes = ["", "/tools", "/categories", "/contact", "/privacy-policy", "/terms", "/disclaimer"].map((path) => ({
-    url: `${siteConfig.url}${path}`,
-    lastModified: new Date()
+  const staticRoutes = staticPages.map((page) => ({
+    url: `${siteConfig.url}${page.path}`,
+    lastModified: new Date(page.lastModified)
   }));
 
   const toolRoutes = tools.map((tool) => ({

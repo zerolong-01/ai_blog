@@ -796,6 +796,55 @@ h3 {
   text-align: center;
 }
 
+.postDiscovery {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.postPagination {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.postPagination > div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.postPagination span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.postPagination a {
+  font-size: 1.2rem;
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 0.2em;
+}
+
+.postPaginationOlder {
+  text-align: right;
+}
+
+.relatedPosts {
+  margin-top: 3rem;
+}
+
+.relatedPosts .sectionHeading {
+  margin-bottom: 1.25rem;
+}
+
+.relatedPosts .sectionHeading h2 {
+  margin-bottom: 0;
+}
+
 .legalShell .pageIntro,
 .legalContent {
   max-width: 860px;
@@ -1093,6 +1142,14 @@ h3 {
 
   .formGrid {
     grid-template-columns: 1fr;
+  }
+
+  .postPagination {
+    grid-template-columns: 1fr;
+  }
+
+  .postPaginationOlder {
+    text-align: left;
   }
 
   .minimalArtwork {
