@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 
 import { ToolCard } from "@/components/tool-card";
 import { renderMarkdown } from "@/lib/markdown";
@@ -59,6 +60,7 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 
 export default async function ToolPage({ params }: ToolPageProps) {
   const { slug } = await params;
+  const nonce = (await headers()).get("x-nonce") || undefined;
   const [tool, posts] = await Promise.all([getReviewBySlug(slug), getAllReviewMeta()]);
 
   if (!tool) {
@@ -107,6 +109,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
   return (
     <article className="container reviewShell">
       <script
+        nonce={nonce}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }}
       />
