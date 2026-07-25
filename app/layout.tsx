@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import { AdSenseScript } from "@/components/adsense-script";
 import { Analytics } from "@/components/analytics";
@@ -45,7 +46,8 @@ export const metadata: Metadata = {
   category: "technology"
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = (await headers()).get("x-nonce") || undefined;
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -59,15 +61,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Analytics />
+        <Analytics nonce={nonce} />
       </head>
       <body>
         <script
+          nonce={nonce}
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }}
         />
-        <ThemeScript />
-        <AdSenseScript />
+        <ThemeScript nonce={nonce} />
+        <AdSenseScript nonce={nonce} />
         <a href="#main-content" className="skipLink">
           Skip to main content
         </a>
