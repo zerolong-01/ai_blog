@@ -54,10 +54,9 @@ function safeEqualHex(left: string, right: string) {
   return timingSafeEqual(leftBuffer, rightBuffer);
 }
 
-function signAdminPayload() {
+function signAdminSession(issuedAt: string) {
   const secret = getEnv("ADMIN_SESSION_SECRET");
-
-  return createHmac("sha256", secret).update(ADMIN_COOKIE_PAYLOAD).digest("hex");
+  return createHmac("sha256", secret).update(`${ADMIN_COOKIE_PAYLOAD}:${issuedAt}`).digest("hex");
 }
 
 export function verifyAdminPassword(password: string) {
@@ -92,7 +91,21 @@ export async function isAdminAuthenticated() {
   }
 
   try {
-    return safeEqualHex(session, signAdminPayload());
+    const [issuedAtValue, signature] = session.split(".");
+    const issuedAt = Number(issuedAtValue);
+    const age = Date.now() - issuedAt;
+
+    if (
+      !issuedAtValue ||
+      !signature ||
+      !Number.isFinite(issuedAt) ||
+      age < -5 * 60 * 1000 ||
+      age > ADMIN_SESSION_MAX_AGE * 1000
+    ) {
+      return false;
+    }
+
+    return safeEqualHex(signature, signAdminSession(issuedAtValue));
   } catch {
     return false;
   }
@@ -120,8 +133,9 @@ export async function createAdminSession() {
   }
 
   const cookieStore = await cookies();
+  const issuedAt = Date.now().toString();
 
-  cookieStore.set(ADMIN_COOKIE_NAME, signAdminPayload(), {
+  cookieStore.set(ADMIN_COOKIE_NAME, `${issuedAt}.${signAdminSession(issuedAt)}`, {
     httpOnly: true,
     maxAge: ADMIN_SESSION_MAX_AGE,
     sameSite: "lax",

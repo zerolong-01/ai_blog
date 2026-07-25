@@ -96,6 +96,10 @@ export default async function AdminPage() {
               </Link>
               <form action={deletePostAction} className="adminDeleteForm">
                 <input type="hidden" name="slug" value={post.slug} />
+                <label className="deleteConfirmation">
+                  <input type="checkbox" name="confirmation" value={post.slug} required />
+                  <span>Confirm delete</span>
+                </label>
                 <button type="submit" className="adminDeleteButton">
                   Delete
                 </button>
