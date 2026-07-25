@@ -20,6 +20,8 @@ export type ToolReviewMeta = {
   cons: string[];
   features: string[];
   verdict: string;
+  author: string;
+  publishedAt: string;
   updatedAt: string;
 };
 

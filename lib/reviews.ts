@@ -10,14 +10,15 @@ import {
   toReview,
   toReviewMeta
 } from "@/lib/posts-db";
+import { siteConfig } from "@/lib/site";
 
-type CreateReviewInput = Omit<ToolReviewMeta, "slug" | "updatedAt"> & {
+type CreateReviewInput = Omit<ToolReviewMeta, "slug" | "author" | "publishedAt" | "updatedAt"> & {
   content: string;
   slug?: string;
   updatedAt?: string;
 };
 
-type UpdateReviewInput = Omit<ToolReviewMeta, "updatedAt"> & {
+type UpdateReviewInput = Omit<ToolReviewMeta, "author" | "publishedAt" | "updatedAt"> & {
   content: string;
 };
 
@@ -154,6 +155,8 @@ export async function createReviewFile(input: CreateReviewInput) {
   const review: ToolReview = {
     ...input,
     slug,
+    author: siteConfig.creator,
+    publishedAt: input.updatedAt || new Date().toISOString().slice(0, 10),
     updatedAt: input.updatedAt || new Date().toISOString().slice(0, 10),
     rating: Number(input.rating),
     content: input.content.trim()
@@ -180,6 +183,8 @@ export async function updateReviewFile(input: UpdateReviewInput) {
   const review: ToolReview = {
     ...input,
     slug,
+    author: existingReview.author,
+    publishedAt: existingReview.publishedAt,
     updatedAt: new Date().toISOString().slice(0, 10),
     rating: Number(input.rating),
     content: input.content.trim()

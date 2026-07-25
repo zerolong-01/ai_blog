@@ -5,6 +5,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { neon } from "@neondatabase/serverless";
 
+import { siteConfig } from "@/lib/site";
 import { ToolCategory, ToolReview, ToolReviewMeta } from "@/lib/types";
 
 type ReviewFrontmatter = Omit<ToolReviewMeta, "rating"> & {
@@ -30,6 +31,7 @@ type PostRecord = {
   cons: unknown;
   features: unknown;
   verdict: string;
+  author: string;
   content: string;
   created_at: string;
   updated_at: string;
@@ -138,12 +140,15 @@ function toToolReview(fileSlug: string, frontmatter: ReviewFrontmatter, content:
     cons: normalizeList(frontmatter.cons),
     features: normalizeList(frontmatter.features),
     verdict: String(frontmatter.verdict || ""),
+    author: String(frontmatter.author || siteConfig.creator),
+    publishedAt: String(frontmatter.publishedAt || frontmatter.updatedAt || new Date().toISOString().slice(0, 10)),
     updatedAt: String(frontmatter.updatedAt || new Date().toISOString().slice(0, 10)),
     content
   };
 }
 
 function mapRecordToReview(record: PostRecord): ToolReview {
+  const publishedAt = toDateOnly(record.created_at);
   const updatedAt = toDateOnly(record.updated_at);
 
   return {
@@ -160,6 +165,8 @@ function mapRecordToReview(record: PostRecord): ToolReview {
     cons: parseList(record.cons),
     features: parseList(record.features),
     verdict: record.verdict,
+    author: record.author || siteConfig.creator,
+    publishedAt,
     updatedAt,
     content: record.content
   };
@@ -205,6 +212,7 @@ async function upsertPost(review: ToolReview) {
       cons,
       features,
       verdict,
+      author,
       content,
       created_at,
       updated_at
@@ -222,8 +230,9 @@ async function upsertPost(review: ToolReview) {
       ${JSON.stringify(review.cons)}::jsonb,
       ${JSON.stringify(review.features)}::jsonb,
       ${review.verdict},
+      ${review.author},
       ${review.content},
-      ${normalizedUpdatedAt}::date,
+      ${toDateOnly(review.publishedAt)}::date,
       ${normalizedUpdatedAt}::date
     )
     ON CONFLICT (slug) DO UPDATE SET
@@ -239,6 +248,7 @@ async function upsertPost(review: ToolReview) {
       cons = EXCLUDED.cons,
       features = EXCLUDED.features,
       verdict = EXCLUDED.verdict,
+      author = EXCLUDED.author,
       content = EXCLUDED.content,
       updated_at = EXCLUDED.updated_at
   `;
@@ -266,12 +276,14 @@ async function initializeDatabase() {
       cons JSONB NOT NULL DEFAULT '[]'::jsonb,
       features JSONB NOT NULL DEFAULT '[]'::jsonb,
       verdict TEXT NOT NULL DEFAULT '',
+      author TEXT NOT NULL DEFAULT 'Stacked AI',
       content TEXT NOT NULL,
       created_at DATE NOT NULL,
       updated_at DATE NOT NULL
     )
   `;
 
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS author TEXT NOT NULL DEFAULT 'Stacked AI'`;
   await sql`CREATE INDEX IF NOT EXISTS posts_updated_at_idx ON posts (updated_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS posts_category_idx ON posts (category)`;
 
@@ -316,6 +328,7 @@ export async function getPostRecords() {
       cons,
       features,
       verdict,
+      author,
       content,
       created_at::text,
       updated_at::text
@@ -343,6 +356,7 @@ export async function getPostRecordBySlug(slug: string) {
       cons,
       features,
       verdict,
+      author,
       content,
       created_at::text,
       updated_at::text
