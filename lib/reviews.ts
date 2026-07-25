@@ -144,6 +144,18 @@ export async function getReviewsByCategory(category: string) {
   return reviews.filter((review) => review.category === category);
 }
 
+export async function getReviewsBySeries(seriesName: string) {
+  const reviews = await getAllReviewMeta();
+
+  return reviews
+    .filter((review) => review.seriesName === seriesName)
+    .sort(
+      (left, right) =>
+        (left.seriesOrder ?? Number.MAX_SAFE_INTEGER) - (right.seriesOrder ?? Number.MAX_SAFE_INTEGER) ||
+        left.publishedAt.localeCompare(right.publishedAt)
+    );
+}
+
 export async function createReviewFile(input: CreateReviewInput) {
   const baseSlug = slugify(input.slug?.trim() || input.name);
 

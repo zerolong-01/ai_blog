@@ -18,6 +18,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${siteConfig.url}/tools/${tool.slug}`,
     lastModified: new Date(tool.updatedAt)
   }));
+  const seriesNames = [...new Set(tools.map((tool) => tool.seriesName).filter((name): name is string => Boolean(name)))];
+  const seriesRoutes = seriesNames.map((seriesName) => {
+    const reviews = tools.filter((tool) => tool.seriesName === seriesName);
+
+    return {
+      url: `${siteConfig.url}/series/${encodeURIComponent(seriesName)}`,
+      lastModified: new Date(
+        reviews.reduce((latest, review) => {
+          return new Date(review.updatedAt).getTime() > latest.getTime() ? new Date(review.updatedAt) : latest;
+        }, new Date(0))
+      )
+    };
+  });
 
   const categoryReviewLists = await Promise.all(
     categories.map(async (category) => ({
@@ -37,5 +50,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       )
     }));
 
-  return [...staticRoutes, ...toolRoutes, ...categoryRoutes];
+  return [
+    ...staticRoutes,
+    {
+      url: `${siteConfig.url}/series`,
+      lastModified: seriesRoutes.reduce(
+        (latest, route) => (route.lastModified.getTime() > latest.getTime() ? route.lastModified : latest),
+        new Date("2026-07-25")
+      )
+    },
+    ...toolRoutes,
+    ...seriesRoutes,
+    ...categoryRoutes
+  ];
 }

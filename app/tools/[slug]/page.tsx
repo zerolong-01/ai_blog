@@ -206,9 +206,15 @@ export default async function ToolPage({ params }: ToolPageProps) {
           <section className="relatedPosts" aria-labelledby="related-posts-heading">
             <div className="sectionHeading">
               <h2 id="related-posts-heading">Related posts</h2>
-              <Link href={`/categories/${tool.category}`} className="textLink">
-                More in {tool.category}
-              </Link>
+              {tool.seriesName ? (
+                <Link href={`/series/${encodeURIComponent(tool.seriesName)}`} className="textLink">
+                  View full series
+                </Link>
+              ) : (
+                <Link href={`/categories/${tool.category}`} className="textLink">
+                  More in {tool.category}
+                </Link>
+              )}
             </div>
             <div className="cardGrid">
               {relatedPosts.map((post) => (

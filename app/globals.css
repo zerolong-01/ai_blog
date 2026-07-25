@@ -946,6 +946,33 @@ h3 {
   padding: 1.4rem;
 }
 
+.seriesCardList {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.seriesCardList > li {
+  position: relative;
+}
+
+.seriesPartNumber {
+  position: absolute;
+  z-index: 1;
+  top: 1.4rem;
+  right: 1.4rem;
+  color: var(--art);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.seriesCardList .toolCardTop {
+  padding-right: 5rem;
+}
+
 .toolCardTop,
 .metaRow,
 .tagline,

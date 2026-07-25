@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ToolCard } from "@/components/tool-card";
-import { categories } from "@/data/categories";
 import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
@@ -19,12 +18,21 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const posts = await getAllReviewMeta();
   const latestPosts = posts.slice(0, 6);
-  const activeCategories = categories
-    .map((category) => ({
-      ...category,
-      postCount: posts.filter((post) => post.category === category.slug).length
-    }))
-    .filter((category) => category.postCount > 0);
+  const seriesMap = new Map<string, { postCount: number; description: string }>();
+
+  for (const post of posts) {
+    if (!post.seriesName) {
+      continue;
+    }
+
+    const current = seriesMap.get(post.seriesName);
+    seriesMap.set(post.seriesName, {
+      postCount: (current?.postCount ?? 0) + 1,
+      description: current?.description || post.summary
+    });
+  }
+
+  const activeSeries = [...seriesMap.entries()].map(([name, details]) => ({ name, ...details })).slice(0, 6);
 
   return (
     <>
@@ -40,8 +48,8 @@ export default async function HomePage() {
               <Link href="#latest-posts" className="primaryButton">
                 Read the latest
               </Link>
-              <Link href="/categories" className="secondaryButton">
-                Browse topics
+              <Link href="/series" className="secondaryButton">
+                Browse series
               </Link>
             </div>
           </div>
@@ -80,26 +88,30 @@ export default async function HomePage() {
         )}
       </section>
 
-      {activeCategories.length > 0 ? (
-        <section className="container homeSection" aria-labelledby="home-categories-heading">
+      {activeSeries.length > 0 ? (
+        <section className="container homeSection" aria-labelledby="home-series-heading">
           <div className="sectionHeading">
             <div>
-              <span className="eyebrow">Explore by topic</span>
-              <h2 id="home-categories-heading">Browse categories</h2>
+              <span className="eyebrow">Continue reading</span>
+              <h2 id="home-series-heading">Browse series</h2>
             </div>
-            <Link href="/categories" className="textLink">
-              View all categories
+            <Link href="/series" className="textLink">
+              View all series
             </Link>
           </div>
 
           <div className="categoryGrid">
-            {activeCategories.map((category) => (
-              <Link key={category.slug} href={`/categories/${category.slug}`} className="categoryCard">
+            {activeSeries.map((series) => (
+              <Link
+                key={series.name}
+                href={`/series/${encodeURIComponent(series.name)}`}
+                className="categoryCard"
+              >
                 <span className="categoryCount">
-                  {category.postCount} {category.postCount === 1 ? "post" : "posts"}
+                  {series.postCount} {series.postCount === 1 ? "part" : "parts"}
                 </span>
-                <h3>{category.name}</h3>
-                <p>{category.description}</p>
+                <h3>{series.name}</h3>
+                {series.description ? <p>{series.description}</p> : null}
               </Link>
             ))}
           </div>

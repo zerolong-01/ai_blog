@@ -32,6 +32,7 @@ function revalidatePostPaths(slug: string) {
   revalidatePath("/tools");
   revalidatePath("/search");
   revalidatePath("/categories");
+  revalidatePath("/series");
   revalidatePath(`/tools/${slug}`);
   revalidatePath("/sitemap.xml");
 }
