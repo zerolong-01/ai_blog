@@ -13,6 +13,7 @@ const initialState: ReviewFormState = {
 
 type ReviewFormProps = {
   mode?: "create" | "edit";
+  seriesOptions?: string[];
   initialValues?: {
     slug?: string;
     name?: string;
@@ -33,7 +34,7 @@ function SubmitButton({ mode }: { mode: "create" | "edit" }) {
   );
 }
 
-export function ReviewForm({ mode = "create", initialValues, intro }: ReviewFormProps) {
+export function ReviewForm({ mode = "create", seriesOptions = [], initialValues, intro }: ReviewFormProps) {
   const action = mode === "edit" ? updateReviewAction : createReviewAction;
   const [state, formAction] = useActionState(action, initialState);
 
@@ -62,7 +63,15 @@ export function ReviewForm({ mode = "create", initialValues, intro }: ReviewForm
             placeholder="Building a practical AI workflow"
             defaultValue={initialValues?.seriesName || ""}
             maxLength={INPUT_LIMITS.postSeriesName}
+            list="series-options"
           />
+          {seriesOptions.length > 0 ? (
+            <datalist id="series-options">
+              {seriesOptions.map((seriesName) => (
+                <option key={seriesName} value={seriesName} />
+              ))}
+            </datalist>
+          ) : null}
         </label>
 
         <label className="fieldGroup">

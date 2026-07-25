@@ -69,10 +69,22 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
   const reviewContent = await renderMarkdown(tool.content);
   const currentIndex = posts.findIndex((post) => post.slug === tool.slug);
+  const seriesPosts = tool.seriesName
+    ? posts
+        .filter((post) => post.seriesName === tool.seriesName)
+        .sort(
+          (left, right) =>
+            (left.seriesOrder ?? Number.MAX_SAFE_INTEGER) - (right.seriesOrder ?? Number.MAX_SAFE_INTEGER) ||
+            left.publishedAt.localeCompare(right.publishedAt)
+        )
+    : [];
   const newerPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
   const olderPost = currentIndex >= 0 && currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
   const relatedPosts = posts
-    .filter((post) => post.slug !== tool.slug && post.category === tool.category)
+    .filter(
+      (post) =>
+        post.slug !== tool.slug && post.category === tool.category && (!tool.seriesName || post.seriesName !== tool.seriesName)
+    )
     .slice(0, 3);
   const articleUrl = absoluteUrl(`/tools/${tool.slug}`);
   const articleImage = absoluteUrl(`/tools/${tool.slug}/opengraph-image`);
@@ -85,6 +97,15 @@ export default async function ToolPage({ params }: ToolPageProps) {
     datePublished: tool.publishedAt,
     dateModified: tool.updatedAt,
     articleSection: tool.category,
+    ...(tool.seriesName
+      ? {
+          isPartOf: {
+            "@type": "CreativeWorkSeries",
+            name: tool.seriesName
+          },
+          position: tool.seriesOrder
+        }
+      : {}),
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": articleUrl
@@ -121,6 +142,12 @@ export default async function ToolPage({ params }: ToolPageProps) {
             By {tool.author} · Published {formatDate(tool.publishedAt)}
             {tool.updatedAt !== tool.publishedAt ? ` · Updated ${formatDate(tool.updatedAt)}` : ""}
           </p>
+          {tool.seriesName ? (
+            <p className="seriesKicker">
+              <span>{tool.seriesName}</span>
+              {tool.seriesOrder ? ` · Part ${tool.seriesOrder}` : ""}
+            </p>
+          ) : null}
         </div>
       </header>
 
@@ -129,6 +156,31 @@ export default async function ToolPage({ params }: ToolPageProps) {
       </div>
 
       <footer className="postDiscovery">
+        {seriesPosts.length > 0 ? (
+          <nav className="seriesNavigation" aria-labelledby="series-heading">
+            <div className="seriesNavigationHeader">
+              <span className="eyebrow">Continue the series</span>
+              <h2 id="series-heading">{tool.seriesName}</h2>
+            </div>
+            <ol>
+              {seriesPosts.map((post) => {
+                const isCurrent = post.slug === tool.slug;
+
+                return (
+                  <li key={post.slug} className={isCurrent ? "seriesCurrent" : undefined}>
+                    <span>Part {post.seriesOrder}</span>
+                    {isCurrent ? (
+                      <strong aria-current="page">{post.name}</strong>
+                    ) : (
+                      <Link href={`/tools/${post.slug}`}>{post.name}</Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        ) : null}
+
         {(newerPost || olderPost) && (
           <nav className="postPagination" aria-label="More posts">
             <div>

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { ReviewForm } from "@/components/review-form";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { getReviewStorageStatus } from "@/lib/reviews";
+import { getAllReviewMeta, getReviewStorageStatus } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -23,6 +23,8 @@ export default async function WriteReviewPage() {
   }
 
   const storageStatus = getReviewStorageStatus();
+  const posts = await getAllReviewMeta();
+  const seriesOptions = [...new Set(posts.map((post) => post.seriesName).filter((name): name is string => Boolean(name)))];
 
   return (
     <section className="container pageShell writePageShell">
@@ -49,7 +51,7 @@ export default async function WriteReviewPage() {
           {storageStatus.error ? <p className="formError">{storageStatus.error}</p> : null}
         </div>
 
-        <ReviewForm />
+        <ReviewForm seriesOptions={seriesOptions} />
       </div>
     </section>
   );
