@@ -22,6 +22,8 @@ type PostRecord = {
   verdict: string;
   author: string;
   content: string;
+  series_name: string | null;
+  series_order: string | number | null;
   created_at: string;
   updated_at: string;
 };
@@ -95,6 +97,8 @@ function mapRecordToReview(record: PostRecord): ToolReview {
     author: record.author || siteConfig.creator,
     publishedAt,
     updatedAt,
+    seriesName: record.series_name || undefined,
+    seriesOrder: record.series_order == null ? undefined : Number(record.series_order),
     content: record.content
   };
 }
@@ -120,6 +124,8 @@ async function upsertPost(review: ToolReview) {
       verdict,
       author,
       content,
+      series_name,
+      series_order,
       created_at,
       updated_at
     ) VALUES (
@@ -138,6 +144,8 @@ async function upsertPost(review: ToolReview) {
       ${review.verdict},
       ${review.author},
       ${review.content},
+      ${review.seriesName || null},
+      ${review.seriesOrder ?? null},
       ${toDateOnly(review.publishedAt)}::date,
       ${normalizedUpdatedAt}::date
     )
@@ -156,6 +164,8 @@ async function upsertPost(review: ToolReview) {
       verdict = EXCLUDED.verdict,
       author = EXCLUDED.author,
       content = EXCLUDED.content,
+      series_name = EXCLUDED.series_name,
+      series_order = EXCLUDED.series_order,
       updated_at = EXCLUDED.updated_at
   `;
 }
@@ -206,6 +216,8 @@ export async function getPostRecords() {
       verdict,
       author,
       content,
+      series_name,
+      series_order,
       created_at::text,
       updated_at::text
     FROM posts
@@ -234,6 +246,8 @@ export async function getPostRecordBySlug(slug: string) {
       verdict,
       author,
       content,
+      series_name,
+      series_order,
       created_at::text,
       updated_at::text
     FROM posts

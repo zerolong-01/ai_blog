@@ -13,10 +13,13 @@ const initialState: ReviewFormState = {
 
 type ReviewFormProps = {
   mode?: "create" | "edit";
+  seriesOptions?: string[];
   initialValues?: {
     slug?: string;
     name?: string;
     content?: string;
+    seriesName?: string;
+    seriesOrder?: number;
   };
   intro?: ReactNode;
 };
@@ -31,7 +34,7 @@ function SubmitButton({ mode }: { mode: "create" | "edit" }) {
   );
 }
 
-export function ReviewForm({ mode = "create", initialValues, intro }: ReviewFormProps) {
+export function ReviewForm({ mode = "create", seriesOptions = [], initialValues, intro }: ReviewFormProps) {
   const action = mode === "edit" ? updateReviewAction : createReviewAction;
   const [state, formAction] = useActionState(action, initialState);
 
@@ -49,6 +52,38 @@ export function ReviewForm({ mode = "create", initialValues, intro }: ReviewForm
             defaultValue={initialValues?.name || ""}
             maxLength={INPUT_LIMITS.postTitle}
             required
+          />
+        </label>
+
+        <label className="fieldGroup">
+          <span>Series name (optional)</span>
+          <input
+            name="seriesName"
+            type="text"
+            placeholder="Building a practical AI workflow"
+            defaultValue={initialValues?.seriesName || ""}
+            maxLength={INPUT_LIMITS.postSeriesName}
+            list="series-options"
+          />
+          {seriesOptions.length > 0 ? (
+            <datalist id="series-options">
+              {seriesOptions.map((seriesName) => (
+                <option key={seriesName} value={seriesName} />
+              ))}
+            </datalist>
+          ) : null}
+        </label>
+
+        <label className="fieldGroup">
+          <span>Part number (optional)</span>
+          <input
+            name="seriesOrder"
+            type="number"
+            min={1}
+            max={INPUT_LIMITS.postSeriesOrder}
+            step={1}
+            placeholder="1"
+            defaultValue={initialValues?.seriesOrder}
           />
         </label>
 

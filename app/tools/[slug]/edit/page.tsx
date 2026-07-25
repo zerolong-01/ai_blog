@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { ReviewForm } from "@/components/review-form";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { getReviewBySlug, getReviewStorageStatus } from "@/lib/reviews";
+import { getAllReviewMeta, getReviewBySlug, getReviewStorageStatus } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
 type EditPostPageProps = {
@@ -32,13 +32,14 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
   }
 
   const { slug } = await params;
-  const post = await getReviewBySlug(slug);
+  const [post, posts] = await Promise.all([getReviewBySlug(slug), getAllReviewMeta()]);
 
   if (!post) {
     notFound();
   }
 
   const storageStatus = getReviewStorageStatus();
+  const seriesOptions = [...new Set(posts.map((item) => item.seriesName).filter((name): name is string => Boolean(name)))];
 
   return (
     <section className="container pageShell writePageShell">
@@ -65,10 +66,13 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
 
         <ReviewForm
           mode="edit"
+          seriesOptions={seriesOptions}
           initialValues={{
             slug: post.slug,
             name: post.name,
-            content: post.content
+            content: post.content,
+            seriesName: post.seriesName,
+            seriesOrder: post.seriesOrder
           }}
         />
       </div>
