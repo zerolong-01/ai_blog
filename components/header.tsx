@@ -10,7 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/tools", label: "Blog" },
-  { href: "/categories", label: "Categories" },
+  { href: "/series", label: "Series" },
   { href: "/search", label: "Search" }
 ] satisfies Array<{ href: Route; label: string }>;
 

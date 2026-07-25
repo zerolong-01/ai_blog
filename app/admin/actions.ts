@@ -109,6 +109,7 @@ export async function deletePostAction(formData: FormData) {
   revalidatePath("/tools");
   revalidatePath("/search");
   revalidatePath("/categories");
+  revalidatePath("/series");
   revalidatePath(`/tools/${slug}`);
   revalidatePath("/sitemap.xml");
 }
