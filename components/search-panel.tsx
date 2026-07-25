@@ -45,15 +45,28 @@ export function SearchPanel({ tools }: SearchPanelProps) {
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Try: agents, writing, image generation..."
+        aria-describedby="search-result-count"
       />
 
-      <p className="searchCount">{results.length} result(s)</p>
+      <p id="search-result-count" className="searchCount" aria-live="polite">
+        {results.length} {results.length === 1 ? "result" : "results"}
+      </p>
 
-      <div className="cardGrid">
-        {results.map((tool) => (
-          <ToolCard key={tool.slug} tool={tool} />
-        ))}
-      </div>
+      {results.length > 0 ? (
+        <div className="cardGrid">
+          {results.map((tool) => (
+            <ToolCard key={tool.slug} tool={tool} />
+          ))}
+        </div>
+      ) : (
+        <div className="searchEmptyState" role="status">
+          <h2>No posts found</h2>
+          <p>Try a broader term, check the spelling, or clear the search to see every post.</p>
+          <button type="button" className="secondaryButton" onClick={() => setQuery("")}>
+            Clear search
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -48,12 +48,34 @@ a {
   text-decoration: none;
 }
 
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--art);
+  outline-offset: 3px;
+}
+
 img {
   max-width: 100%;
 }
 
 main {
   min-height: 100vh;
+}
+
+.skipLink {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--bg);
+  transform: translateY(calc(-100% - 1rem));
+  transition: transform 0.15s ease;
+}
+
+.skipLink:focus {
+  transform: translateY(0);
 }
 
 .container {
@@ -97,9 +119,55 @@ main {
   font-size: 0.98rem;
 }
 
+.mainNav a {
+  padding: 0.35rem 0.15rem;
+}
+
+.mainNav a[aria-current="page"] {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--art);
+  text-decoration-thickness: 0.16em;
+  text-underline-offset: 0.35em;
+}
+
 .mainNav a:hover,
 .textLink:hover {
   color: var(--accent);
+}
+
+.navMenu {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2rem;
+}
+
+.mobileMenuToggle {
+  display: none;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.65rem 0.85rem;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.menuIcon {
+  display: grid;
+  gap: 3px;
+  width: 18px;
+}
+
+.menuIcon span {
+  display: block;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
 }
 
 .navActions {
@@ -716,7 +784,7 @@ h3 {
 
 .proseReview {
   line-height: 1.75;
-  max-width: 920px;
+  max-width: 70ch;
 }
 
 .postBody {
@@ -806,6 +874,23 @@ h3 {
   background: var(--surface-strong);
 }
 
+.searchEmptyState {
+  padding: 2.5rem 1.5rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.searchEmptyState p {
+  max-width: 48ch;
+  margin: 0 auto 1.25rem;
+  color: var(--muted);
+}
+
+.searchEmptyState h2 {
+  font-size: 1.6rem;
+}
+
 .reviewShell {
   padding: 2rem 0 3rem;
 }
@@ -871,7 +956,6 @@ h3 {
   }
 
   .minimalHeroGrid,
-  .navShell,
   .reviewHeader,
   .sectionHeading {
     flex-direction: column;
@@ -893,6 +977,60 @@ h3 {
   }
 }
 
+@media (max-width: 760px) {
+  .navShell {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0.75rem 0;
+  }
+
+  .mobileMenuToggle {
+    display: inline-flex;
+  }
+
+  .navMenu {
+    display: none;
+    width: 100%;
+    flex: 0 0 100%;
+    padding: 0.75rem 0 0.25rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .navMenuOpen {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .mainNav {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .mainNav a {
+    padding: 0.7rem 0.8rem;
+    border-radius: 10px;
+  }
+
+  .mainNav a[aria-current="page"] {
+    background: var(--accent-soft);
+    text-decoration: none;
+  }
+
+  .navActions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .navActions .themeToggle,
+  .navActions .navCta {
+    width: auto;
+    padding-block: 0.7rem;
+  }
+}
+
 @media (max-width: 640px) {
   .container {
     width: min(100% - 1rem, 1120px);
@@ -908,10 +1046,8 @@ h3 {
     align-items: stretch;
   }
 
-  .primaryButton,
-  .secondaryButton,
-  .themeToggle,
-  .navCta {
+  .ctaRow .primaryButton,
+  .ctaRow .secondaryButton {
     width: 100%;
     text-align: center;
   }
@@ -974,9 +1110,4 @@ h3 {
     height: 120px;
   }
 
-  .navActions {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
