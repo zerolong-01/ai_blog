@@ -23,6 +23,9 @@ export type NewsDraft = {
   generatedContent: string;
   warnings: string[];
   model: string;
+  suggestedSeriesName?: string;
+  suggestedSeriesOrder?: number;
+  isNewSeries?: boolean;
   errorMessage?: string;
   publishedPostSlug?: string;
 };
@@ -40,6 +43,8 @@ type DraftRecord = {
   generated_content: string;
   warnings: unknown;
   model: string;
+  suggested_series_name: string | null;
+  suggested_series_order: string | number | null;
   error_message: string | null;
   published_post_slug: string | null;
 };
@@ -62,6 +67,8 @@ function mapDraft(row: DraftRecord): NewsDraft {
     generatedContent: row.generated_content,
     warnings: list<string>(row.warnings),
     model: row.model,
+    suggestedSeriesName: row.suggested_series_name || undefined,
+    suggestedSeriesOrder: row.suggested_series_order == null ? undefined : Number(row.suggested_series_order),
     errorMessage: row.error_message || undefined,
     publishedPostSlug: row.published_post_slug || undefined
   };
@@ -72,7 +79,7 @@ export async function findReusableDraft(sourceUrl: string) {
   const rows = (await sql`
     SELECT id, status, source_url, source_title, source_publisher,
       source_published_at::text, supporting_sources, generated_title,
-      generated_summary, generated_content, warnings, model,
+      generated_summary, generated_content, warnings, model, suggested_series_name, suggested_series_order,
       error_message, published_post_slug
     FROM ai_article_drafts
     WHERE source_url = ${sourceUrl} AND status IN ('generating', 'ready')
@@ -101,6 +108,9 @@ export async function saveReadyDraft(
     responseId: string;
     inputTokens?: number;
     outputTokens?: number;
+    seriesName: string;
+    seriesOrder: number;
+    isNewSeries: boolean;
   }
 ) {
   const sql = getDatabaseSql();
@@ -112,6 +122,7 @@ export async function saveReadyDraft(
       generated_title = ${generated.title}, generated_summary = ${generated.summary},
       generated_content = ${generated.markdown}, warnings = ${JSON.stringify(generated.warnings)}::jsonb,
       model = ${generated.model}, response_id = ${generated.responseId},
+      suggested_series_name = ${generated.seriesName}, suggested_series_order = ${generated.seriesOrder},
       input_tokens = ${generated.inputTokens ?? null}, output_tokens = ${generated.outputTokens ?? null},
       error_message = NULL, updated_at = NOW()
     WHERE id = ${id}
@@ -131,7 +142,7 @@ export async function getNewsDraft(id: string) {
   const rows = (await sql`
     SELECT id, status, source_url, source_title, source_publisher,
       source_published_at::text, supporting_sources, generated_title,
-      generated_summary, generated_content, warnings, model,
+      generated_summary, generated_content, warnings, model, suggested_series_name, suggested_series_order,
       error_message, published_post_slug
     FROM ai_article_drafts WHERE id = ${id} LIMIT 1
   `) as DraftRecord[];
@@ -143,7 +154,7 @@ export async function getRecentNewsDrafts() {
   const rows = (await sql`
     SELECT id, status, source_url, source_title, source_publisher,
       source_published_at::text, supporting_sources, generated_title,
-      generated_summary, generated_content, warnings, model,
+      generated_summary, generated_content, warnings, model, suggested_series_name, suggested_series_order,
       error_message, published_post_slug
     FROM ai_article_drafts ORDER BY created_at DESC LIMIT 20
   `) as DraftRecord[];
