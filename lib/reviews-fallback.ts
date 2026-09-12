@@ -64,6 +64,7 @@ function toToolReview(fileSlug: string, frontmatter: ReviewFrontmatter, content:
     features: normalizeList(frontmatter.features),
     verdict: String(frontmatter.verdict || ""),
     updatedAt: String(frontmatter.updatedAt || new Date().toISOString().slice(0, 10)),
+    status: "published",
     content
   };
 }

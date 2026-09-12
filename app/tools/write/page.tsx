@@ -40,8 +40,8 @@ export default async function WriteReviewPage() {
           <span className="eyebrow">Editorial</span>
           <h1>Create a new post</h1>
           <p>
-            Draft a publishable article for Stacked AI using a headline and markdown body. Posts are saved into the
-            site library and immediately become part of the blog.
+            Draft a fact-checked article using a headline and markdown body. Save private work as a draft, then publish
+            it only when it is ready for readers.
           </p>
           <p className="editorHint">
             Storage: Posts are persisted in the blog database at {storageStatus.target}.

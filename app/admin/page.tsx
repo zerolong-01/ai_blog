@@ -5,7 +5,7 @@ import type { Route } from "next";
 import { deletePostAction, logoutAdminAction } from "@/app/admin/actions";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { getAdminConfigError, isAdminAuthenticated } from "@/lib/admin-auth";
-import { getAllReviewMeta } from "@/lib/reviews";
+import { getAllReviewMetaForAdmin } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
 
@@ -40,14 +40,14 @@ export default async function AdminPage() {
     );
   }
 
-  const posts = await getAllReviewMeta();
+  const posts = await getAllReviewMetaForAdmin();
 
   return (
     <section className="container pageShell adminShell">
       <div className="pageIntro adminIntro">
         <span className="eyebrow">Admin</span>
         <h1>Manage posts</h1>
-        <p>Delete published posts from the blog database.</p>
+          <p>Review AI news drafts, then publish only fact-checked posts.</p>
       </div>
 
       <div className="adminToolbar">
@@ -56,6 +56,9 @@ export default async function AdminPage() {
         </Link>
         <Link href="/tools/write" className="primaryButton">
           Write post
+        </Link>
+        <Link href={"/admin/news-workflow" as Route} className="secondaryButton">
+          News workflow
         </Link>
         <form action={logoutAdminAction}>
           <button type="submit" className="secondaryButton">
@@ -70,10 +73,11 @@ export default async function AdminPage() {
             <div className="adminCardBody">
               <div className="adminMeta">
                 <span>{formatDate(post.updatedAt)}</span>
+                <span className={post.status === "published" ? "statusPublished" : "statusDraft"}>{post.status}</span>
                 <span>/{post.slug}</span>
               </div>
               <h2>
-                <Link href={`/tools/${post.slug}`} className="feedTitleLink">
+                <Link href={post.status === "published" ? `/tools/${post.slug}` : `/tools/${post.slug}/edit`} className="feedTitleLink">
                   {post.name}
                 </Link>
               </h2>

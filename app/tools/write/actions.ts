@@ -34,6 +34,10 @@ function revalidatePostPaths(slug: string) {
   revalidatePath("/sitemap.xml");
 }
 
+function getStatus(formData: FormData) {
+  return formData.get("status") === "draft" ? "draft" : "published";
+}
+
 export async function createReviewAction(
   previousState: ReviewFormState = initialState,
   formData: FormData
@@ -42,6 +46,7 @@ export async function createReviewAction(
 
   const name = String(formData.get("name") || "").trim();
   const content = String(formData.get("content") || "").trim();
+  const status = getStatus(formData);
 
   if (!name || !content) {
     return { error: "Title and content are required." };
@@ -58,6 +63,7 @@ export async function createReviewAction(
       website: "",
       price: "",
       rating: 0,
+      status,
       summary: getSummary(content),
       verdict: "",
       bestFor: [],
@@ -76,7 +82,7 @@ export async function createReviewAction(
 
   revalidatePostPaths(slug);
 
-  redirect(`/tools/${slug}`);
+  redirect(status === "draft" ? "/admin" : `/tools/${slug}`);
 }
 
 export async function updateReviewAction(
@@ -88,6 +94,7 @@ export async function updateReviewAction(
   const slug = String(formData.get("slug") || "").trim();
   const name = String(formData.get("name") || "").trim();
   const content = String(formData.get("content") || "").trim();
+  const status = getStatus(formData);
 
   if (!slug || !name || !content) {
     return { error: "Slug, title, and content are required." };
@@ -104,6 +111,7 @@ export async function updateReviewAction(
       website: "",
       price: "",
       rating: 0,
+      status,
       summary: getSummary(content),
       verdict: "",
       bestFor: [],
@@ -121,5 +129,5 @@ export async function updateReviewAction(
   }
 
   revalidatePostPaths(updatedSlug);
-  redirect(`/tools/${updatedSlug}`);
+  redirect(status === "draft" ? "/admin" : `/tools/${updatedSlug}`);
 }

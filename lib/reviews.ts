@@ -2,9 +2,11 @@ import { ToolReview, ToolReviewMeta } from "@/lib/types";
 import { getBundledReviewBySlug, getBundledReviewMeta, getBundledReviews } from "@/lib/reviews-fallback";
 import {
   deletePost,
+  getAllPostRecordsForAdmin,
   getDatabaseStorageStatus,
   getPostCountBySlug,
   getPostRecordBySlug,
+  getPostRecordBySlugForAdmin,
   getPostRecords,
   insertPost,
   toReview,
@@ -78,6 +80,16 @@ export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
   }
 }
 
+export async function getAllReviewMetaForAdmin(): Promise<ToolReviewMeta[]> {
+  try {
+    const records = await getAllPostRecordsForAdmin();
+    return records.map(toReviewMeta).map((review) => ({ ...review }));
+  } catch {
+    const fallbackReviews = await getBundledReviewMeta();
+    return fallbackReviews.map((review) => ({ ...review }));
+  }
+}
+
 export async function getReviewBySlug(slug: string) {
   const normalizedSlug = slugify(slug);
 
@@ -87,6 +99,22 @@ export async function getReviewBySlug(slug: string) {
 
   try {
     const record = await getPostRecordBySlug(normalizedSlug);
+    return record ? { ...toReview(record) } : undefined;
+  } catch {
+    const fallbackReview = await getBundledReviewBySlug(normalizedSlug);
+    return fallbackReview ? { ...fallbackReview } : undefined;
+  }
+}
+
+export async function getReviewBySlugForAdmin(slug: string) {
+  const normalizedSlug = slugify(slug);
+
+  if (!normalizedSlug) {
+    return undefined;
+  }
+
+  try {
+    const record = await getPostRecordBySlugForAdmin(normalizedSlug);
     return record ? { ...toReview(record) } : undefined;
   } catch {
     const fallbackReview = await getBundledReviewBySlug(normalizedSlug);

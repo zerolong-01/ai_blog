@@ -20,13 +20,18 @@ type ReviewFormProps = {
   intro?: ReactNode;
 };
 
-function SubmitButton({ mode }: { mode: "create" | "edit" }) {
+function SubmitButtons({ mode }: { mode: "create" | "edit" }) {
   const { pending } = useFormStatus();
 
   return (
-    <button className="primaryButton" type="submit" disabled={pending}>
-      {pending ? (mode === "edit" ? "Saving..." : "Publishing...") : mode === "edit" ? "Save changes" : "Publish post"}
-    </button>
+    <>
+      <button className="secondaryButton" type="submit" name="status" value="draft" disabled={pending}>
+        {pending ? "Saving..." : "Save draft"}
+      </button>
+      <button className="primaryButton" type="submit" name="status" value="published" disabled={pending}>
+        {pending ? "Saving..." : mode === "edit" ? "Publish changes" : "Publish post"}
+      </button>
+    </>
   );
 }
 
@@ -69,7 +74,7 @@ export function ReviewForm({ mode = "create", initialValues, intro }: ReviewForm
       <p className="editorHint">Markdown is supported. Headings, lists, links, and paragraphs will render automatically.</p>
 
       <div className="editorActions">
-        <SubmitButton mode={mode} />
+        <SubmitButtons mode={mode} />
       </div>
     </form>
   );

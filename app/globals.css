@@ -570,6 +570,8 @@ h3 {
 
 .editorActions {
   display: flex;
+  align-items: center;
+  gap: 0.75rem;
   justify-content: flex-start;
 }
 
@@ -605,6 +607,61 @@ h3 {
   color: var(--muted);
   font-size: 0.92rem;
   margin-bottom: 0.5rem;
+}
+
+.statusDraft,
+.statusPublished {
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.statusDraft {
+  background: rgba(184, 113, 0, 0.12);
+  color: #9a5b00;
+}
+
+.statusPublished {
+  background: rgba(14, 117, 85, 0.12);
+  color: #087754;
+}
+
+.newsWorkflow {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.workflowSteps {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 1.25rem 2.8rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.workflowPrompt {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.workflowNotice {
+  padding: 1.25rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+}
+
+.workflowNotice h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.workflowNotice p {
+  margin-bottom: 0;
 }
 
 .adminDeleteForm {

@@ -31,6 +31,7 @@ type PostRecord = {
   features: unknown;
   verdict: string;
   content: string;
+  is_published: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -139,6 +140,7 @@ function toToolReview(fileSlug: string, frontmatter: ReviewFrontmatter, content:
     features: normalizeList(frontmatter.features),
     verdict: String(frontmatter.verdict || ""),
     updatedAt: String(frontmatter.updatedAt || new Date().toISOString().slice(0, 10)),
+    status: "published",
     content
   };
 }
@@ -161,6 +163,7 @@ function mapRecordToReview(record: PostRecord): ToolReview {
     features: parseList(record.features),
     verdict: record.verdict,
     updatedAt,
+    status: record.is_published ? "published" : "draft",
     content: record.content
   };
 }
@@ -206,6 +209,7 @@ async function upsertPost(review: ToolReview) {
       features,
       verdict,
       content,
+      is_published,
       created_at,
       updated_at
     ) VALUES (
@@ -223,6 +227,7 @@ async function upsertPost(review: ToolReview) {
       ${JSON.stringify(review.features)}::jsonb,
       ${review.verdict},
       ${review.content},
+      ${review.status === "published"},
       ${normalizedUpdatedAt}::date,
       ${normalizedUpdatedAt}::date
     )
@@ -240,6 +245,7 @@ async function upsertPost(review: ToolReview) {
       features = EXCLUDED.features,
       verdict = EXCLUDED.verdict,
       content = EXCLUDED.content,
+      is_published = EXCLUDED.is_published,
       updated_at = EXCLUDED.updated_at
   `;
 }
@@ -267,10 +273,13 @@ async function initializeDatabase() {
       features JSONB NOT NULL DEFAULT '[]'::jsonb,
       verdict TEXT NOT NULL DEFAULT '',
       content TEXT NOT NULL,
+      is_published BOOLEAN NOT NULL DEFAULT TRUE,
       created_at DATE NOT NULL,
       updated_at DATE NOT NULL
     )
   `;
+
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT TRUE`;
 
   await sql`CREATE INDEX IF NOT EXISTS posts_updated_at_idx ON posts (updated_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS posts_category_idx ON posts (category)`;
@@ -292,7 +301,7 @@ export async function ensurePostsDatabase() {
   await initializationPromise;
 }
 
-export async function getPostRecords() {
+async function getPostRecordsByVisibility(visibility: "all" | "published") {
   await ensurePostsDatabase();
   const sql = getSql();
 
@@ -312,14 +321,24 @@ export async function getPostRecords() {
       features,
       verdict,
       content,
+      is_published,
       created_at::text,
       updated_at::text
     FROM posts
+    WHERE ${visibility} = 'all' OR is_published = TRUE
     ORDER BY updated_at DESC, slug DESC
   `) as PostRecord[];
 }
 
-export async function getPostRecordBySlug(slug: string) {
+export async function getPostRecords() {
+  return getPostRecordsByVisibility("published");
+}
+
+export async function getAllPostRecordsForAdmin() {
+  return getPostRecordsByVisibility("all");
+}
+
+async function getPostRecordBySlugWithVisibility(slug: string, visibility: "all" | "published") {
   await ensurePostsDatabase();
   const sql = getSql();
 
@@ -339,14 +358,23 @@ export async function getPostRecordBySlug(slug: string) {
       features,
       verdict,
       content,
+      is_published,
       created_at::text,
       updated_at::text
     FROM posts
-    WHERE slug = ${slug}
+    WHERE slug = ${slug} AND (${visibility} = 'all' OR is_published = TRUE)
     LIMIT 1
   `) as PostRecord[];
 
   return rows[0] ?? null;
+}
+
+export async function getPostRecordBySlug(slug: string) {
+  return getPostRecordBySlugWithVisibility(slug, "published");
+}
+
+export async function getPostRecordBySlugForAdmin(slug: string) {
+  return getPostRecordBySlugWithVisibility(slug, "all");
 }
 
 export async function getPostCountBySlug(slug: string) {
