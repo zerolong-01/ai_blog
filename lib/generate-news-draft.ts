@@ -1,8 +1,5 @@
-"use server";
-
 import { revalidatePath } from "next/cache";
 
-import { requireAdminAuth } from "@/lib/admin-auth";
 import { logAdminEvent } from "@/lib/admin-audit";
 import { createGeneratingDraft, findReusableDraft, saveFailedDraft, saveReadyDraft } from "@/lib/news-drafts";
 import { fetchNewsSource, NewsSourceError, validatePublicNewsUrl } from "@/lib/news-source";
@@ -14,20 +11,7 @@ export type GenerateNewsDraftResult =
   | { ok: true; draftId: string }
   | { ok: false; code: "INVALID_URL" | "FETCH_FAILED" | "EXTRACTION_FAILED" | "AI_FAILED"; message: string };
 
-export const initialNewsDraftState: GenerateNewsDraftResult = {
-  ok: false,
-  code: "INVALID_URL",
-  message: ""
-};
-
-async function performGenerateNewsDraftAction(
-  previousState: GenerateNewsDraftResult = initialNewsDraftState,
-  formData: FormData
-): Promise<GenerateNewsDraftResult> {
-  void previousState;
-  await requireAdminAuth();
-  const rawUrl = String(formData.get("sourceUrl") || "").trim();
-  const pastedText = String(formData.get("sourceText") || "").trim();
+export async function generateNewsDraft(rawUrl: string, pastedText: string): Promise<GenerateNewsDraftResult> {
   let sourceUrl: URL;
   try {
     sourceUrl = await validatePublicNewsUrl(rawUrl);
@@ -60,21 +44,5 @@ async function performGenerateNewsDraftAction(
     await logAdminEvent("news_draft_generated", { target: draftId || canonicalUrl, outcome: "failure" });
     console.error("[news-draft]", { draftId, message: error instanceof Error ? error.message : String(error) });
     return { ok: false, code, message: publicMessage };
-  }
-}
-
-export async function generateNewsDraftAction(
-  previousState: GenerateNewsDraftResult = initialNewsDraftState,
-  formData: FormData
-): Promise<GenerateNewsDraftResult> {
-  try {
-    return await performGenerateNewsDraftAction(previousState, formData);
-  } catch (error) {
-    console.error("[news-draft-unhandled]", { message: error instanceof Error ? error.message : String(error) });
-    return {
-      ok: false,
-      code: "AI_FAILED",
-      message: "News draft generation is temporarily unavailable. Check the database migration and OpenAI environment settings."
-    };
   }
 }
