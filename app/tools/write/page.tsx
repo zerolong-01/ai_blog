@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -34,6 +34,9 @@ export default async function WriteReviewPage() {
         </Link>
         <Link href="/tools/write" className="feedTab feedTabActive">
           Write
+        </Link>
+        <Link href={"/tools/write/from-news" as Route} className="feedTab">
+          Generate from news
         </Link>
       </div>
 

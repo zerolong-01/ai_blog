@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { requireAdminAuth } from "@/lib/admin-auth";
 import { logAdminEvent } from "@/lib/admin-audit";
 import { exceedsUtf8Bytes, INPUT_LIMITS } from "@/lib/input-validation";
+import { markDraftPublished } from "@/lib/news-drafts";
 import { createReviewFile, updateReviewFile } from "@/lib/reviews";
 
 export type ReviewFormState = {
@@ -68,6 +69,7 @@ export async function createReviewAction(
 
   const name = String(formData.get("name") || "").trim();
   const content = String(formData.get("content") || "").trim();
+  const generatedSummary = String(formData.get("generatedSummary") || "").trim();
 
   if (!name || !content) {
     return { error: "Title and content are required." };
@@ -88,7 +90,7 @@ export async function createReviewAction(
       website: "",
       price: "",
       rating: 0,
-      summary: getSummary(content),
+      summary: generatedSummary.slice(0, 180) || getSummary(content),
       verdict: "",
       bestFor: [],
       pros: [],
@@ -106,6 +108,11 @@ export async function createReviewAction(
   }
 
   revalidatePostPaths(slug);
+  const draftId = String(formData.get("draftId") || "").trim();
+  if (draftId) {
+    await markDraftPublished(draftId, slug);
+    await logAdminEvent("news_draft_published", { target: draftId, outcome: "success" });
+  }
   await logAdminEvent("post_created", { target: slug, outcome: "success" });
 
   redirect(`/tools/${slug}`);

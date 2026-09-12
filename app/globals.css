@@ -1128,6 +1128,50 @@ h3 {
   color: var(--muted);
 }
 
+.newsImportForm,
+.draftSourceCard,
+.draftWarnings {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.draftSourceCard,
+.draftWarnings {
+  margin-bottom: 1.5rem;
+}
+
+.draftSourceCard a {
+  color: var(--accent);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.draftSourceCard p,
+.draftWarnings li {
+  color: var(--muted);
+}
+
+.draftWarnings {
+  border-color: rgba(180, 120, 20, 0.35);
+  background: color-mix(in srgb, #f5a623 8%, var(--surface));
+}
+
+.draftWarnings ul {
+  margin-bottom: 0;
+  padding-left: 1.2rem;
+}
+
+.adminDraftSection {
+  max-width: 900px;
+  margin: 0 auto 3rem;
+}
+
+.adminDraftSection .sectionHeading {
+  margin-bottom: 1rem;
+}
+
 .pill {
   text-transform: capitalize;
 }

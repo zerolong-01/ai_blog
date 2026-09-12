@@ -18,10 +18,12 @@ type ReviewFormProps = {
     slug?: string;
     name?: string;
     content?: string;
+    summary?: string;
     seriesName?: string;
     seriesOrder?: number;
   };
   intro?: ReactNode;
+  draftId?: string;
 };
 
 function SubmitButton({ mode }: { mode: "create" | "edit" }) {
@@ -34,12 +36,14 @@ function SubmitButton({ mode }: { mode: "create" | "edit" }) {
   );
 }
 
-export function ReviewForm({ mode = "create", seriesOptions = [], initialValues, intro }: ReviewFormProps) {
+export function ReviewForm({ mode = "create", seriesOptions = [], initialValues, intro, draftId }: ReviewFormProps) {
   const action = mode === "edit" ? updateReviewAction : createReviewAction;
   const [state, formAction] = useActionState(action, initialState);
 
   return (
     <form action={formAction} className="editorForm">
+      {draftId ? <input type="hidden" name="draftId" value={draftId} /> : null}
+      {initialValues?.summary ? <input type="hidden" name="generatedSummary" value={initialValues.summary} /> : null}
       {mode === "edit" && initialValues?.slug ? <input type="hidden" name="slug" value={initialValues.slug} /> : null}
 
       <div className="formGrid">
