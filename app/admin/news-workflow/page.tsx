@@ -20,10 +20,10 @@ export const metadata: Metadata = {
 
 const scheduledTaskPrompt = `Every weekday at 08:00 Asia/Seoul, research notable AI, productivity, and developer-tool news published in the last 24 hours. Use official announcements and reputable reporting only.
 
-Return:
+Return everything in English:
 1. Five candidate stories with publisher, publication date, source URL, and a one-sentence statement of the verified fact.
 2. One recommended story, with a short explanation of why it matters to practical AI-tool users.
-3. A Korean Markdown article draft of 1,200–1,800 Korean characters. Include an H2 introduction, two or three H2 sections, and a short takeaway.
+3. A 1,200–1,800 word Markdown article draft with an H2 introduction, two or three H2 sections, and a short takeaway.
 4. Three SEO headline options, one meta description (under 155 characters), and five tags.
 5. A Sources section containing every URL used.
 
@@ -32,7 +32,7 @@ Rules:
 - Clearly distinguish verified facts from analysis.
 - Never invent dates, pricing, product availability, quotes, or capabilities.
 - If a claim cannot be verified, omit it.
-- Write in clear Korean for readers who use AI tools at work.`;
+- Write in clear English for readers who use AI tools at work.`;
 
 export default async function NewsWorkflowPage() {
   const authenticated = await isAdminAuthenticated();
@@ -65,8 +65,8 @@ export default async function NewsWorkflowPage() {
         <ol className="workflowSteps">
           <li>Create a weekday Scheduled task in ChatGPT Plus with the prompt below.</li>
           <li>Check every date, number, quote, and source against the original article.</li>
-          <li>Paste the edited Markdown into a new post and choose <strong>Save draft</strong>.</li>
-          <li>Open the draft from Admin, complete the review, and choose <strong>Publish changes</strong>.</li>
+          <li>Paste the edited Markdown into a new post.</li>
+          <li>Publish only after the editorial checklist is complete.</li>
         </ol>
 
         <label className="fieldGroup">
@@ -77,8 +77,8 @@ export default async function NewsWorkflowPage() {
         <div className="workflowNotice">
           <h2>Publishing rule</h2>
           <p>
-            Drafts are private: they are excluded from the blog, search, category pages, and sitemap. Publish only articles with
-            checked source links and original analysis.
+            ChatGPT does not publish to this site automatically. Publish only articles with checked source links and original
+            analysis.
           </p>
         </div>
       </div>

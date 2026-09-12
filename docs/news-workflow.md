@@ -9,10 +9,10 @@ In ChatGPT Plus, create a weekday scheduled task with this prompt. Keep the rule
 ```text
 Every weekday at 08:00 Asia/Seoul, research notable AI, productivity, and developer-tool news published in the last 24 hours. Use official announcements and reputable reporting only.
 
-Return:
+Return everything in English:
 1. Five candidate stories with publisher, publication date, source URL, and a one-sentence statement of the verified fact.
 2. One recommended story, with a short explanation of why it matters to practical AI-tool users.
-3. A Korean Markdown article draft of 1,200–1,800 Korean characters. Include an H2 introduction, two or three H2 sections, and a short takeaway.
+3. A 1,200–1,800 word Markdown article draft with an H2 introduction, two or three H2 sections, and a short takeaway.
 4. Three SEO headline options, one meta description (under 155 characters), and five tags.
 5. A Sources section containing every URL used.
 
@@ -21,7 +21,7 @@ Rules:
 - Clearly distinguish verified facts from analysis.
 - Never invent dates, pricing, product availability, quotes, or capabilities.
 - If a claim cannot be verified, omit it.
-- Write in clear Korean for readers who use AI tools at work.
+- Write in clear English for readers who use AI tools at work.
 ```
 
 ## 2. Editorial checklist
@@ -31,11 +31,10 @@ Before publishing, verify every date, number, quote, feature claim, and source l
 ## 3. Publish in this site
 
 1. Sign in at `/admin` and open **News workflow**.
-2. Copy the scheduled result into the draft form and save it as **Draft**.
-3. Review the preview and source links. Edit as needed.
-4. Select **Publish** only after the checklist is complete.
+2. Copy the scheduled result into a new post and review every source link.
+3. Edit the Markdown as needed, then select **Publish** only after the checklist is complete.
 
-Draft posts are visible only to an authenticated administrator. Published posts appear in the blog, search, category pages, and sitemap.
+The scheduled task does not publish to this site automatically. Published posts appear in the blog, search, category pages, and sitemap.
 
 ## 4. Optional no-code assistance
 
