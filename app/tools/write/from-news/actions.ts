@@ -20,7 +20,7 @@ export const initialNewsDraftState: GenerateNewsDraftResult = {
   message: ""
 };
 
-export async function generateNewsDraftAction(
+async function performGenerateNewsDraftAction(
   previousState: GenerateNewsDraftResult = initialNewsDraftState,
   formData: FormData
 ): Promise<GenerateNewsDraftResult> {
@@ -60,5 +60,21 @@ export async function generateNewsDraftAction(
     await logAdminEvent("news_draft_generated", { target: draftId || canonicalUrl, outcome: "failure" });
     console.error("[news-draft]", { draftId, message: error instanceof Error ? error.message : String(error) });
     return { ok: false, code, message: publicMessage };
+  }
+}
+
+export async function generateNewsDraftAction(
+  previousState: GenerateNewsDraftResult = initialNewsDraftState,
+  formData: FormData
+): Promise<GenerateNewsDraftResult> {
+  try {
+    return await performGenerateNewsDraftAction(previousState, formData);
+  } catch (error) {
+    console.error("[news-draft-unhandled]", { message: error instanceof Error ? error.message : String(error) });
+    return {
+      ok: false,
+      code: "AI_FAILED",
+      message: "News draft generation is temporarily unavailable. Check the database migration and OpenAI environment settings."
+    };
   }
 }
