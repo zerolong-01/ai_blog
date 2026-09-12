@@ -37,11 +37,11 @@ export async function generateNewsDraftAction(
   }
 
   const canonicalUrl = sourceUrl.toString();
-  const reusable = await findReusableDraft(canonicalUrl);
-  if (reusable) return { ok: true, draftId: reusable.id };
-
-  const draftId = await createGeneratingDraft(canonicalUrl);
+  let draftId: string | undefined;
   try {
+    const reusable = await findReusableDraft(canonicalUrl);
+    if (reusable) return { ok: true, draftId: reusable.id };
+    draftId = await createGeneratingDraft(canonicalUrl);
     const source = pastedText
       ? { url: canonicalUrl, title: "", publisher: sourceUrl.hostname.replace(/^www\./, ""), text: pastedText.slice(0, 100_000) }
       : await fetchNewsSource(canonicalUrl);
@@ -56,8 +56,8 @@ export async function generateNewsDraftAction(
     const sourceError = error instanceof NewsSourceError ? error : undefined;
     const code = sourceError?.code || "AI_FAILED";
     const publicMessage = sourceError?.message || "The AI draft could not be generated. Check the API configuration and try again.";
-    await saveFailedDraft(draftId, publicMessage);
-    await logAdminEvent("news_draft_generated", { target: draftId, outcome: "failure" });
+    if (draftId) await saveFailedDraft(draftId, publicMessage).catch(() => undefined);
+    await logAdminEvent("news_draft_generated", { target: draftId || canonicalUrl, outcome: "failure" });
     console.error("[news-draft]", { draftId, message: error instanceof Error ? error.message : String(error) });
     return { ok: false, code, message: publicMessage };
   }
