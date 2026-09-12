@@ -49,6 +49,52 @@ type DraftRecord = {
   published_post_slug: string | null;
 };
 
+let schemaPromise: Promise<void> | null = null;
+
+async function initializeNewsDraftSchema() {
+  const sql = getDatabaseSql();
+  await sql`
+    CREATE TABLE IF NOT EXISTS ai_article_drafts (
+      id TEXT PRIMARY KEY,
+      status TEXT NOT NULL CHECK (status IN ('generating', 'ready', 'failed', 'published')),
+      source_url TEXT NOT NULL,
+      source_title TEXT NOT NULL DEFAULT '',
+      source_publisher TEXT NOT NULL DEFAULT '',
+      source_published_at TIMESTAMPTZ,
+      source_text TEXT NOT NULL DEFAULT '',
+      supporting_sources JSONB NOT NULL DEFAULT '[]'::jsonb,
+      generated_title TEXT NOT NULL DEFAULT '',
+      generated_summary TEXT NOT NULL DEFAULT '',
+      generated_content TEXT NOT NULL DEFAULT '',
+      warnings JSONB NOT NULL DEFAULT '[]'::jsonb,
+      model TEXT NOT NULL DEFAULT '',
+      response_id TEXT,
+      input_tokens INTEGER,
+      output_tokens INTEGER,
+      error_message TEXT,
+      published_post_slug TEXT REFERENCES posts(slug) ON DELETE SET NULL,
+      suggested_series_name TEXT,
+      suggested_series_order INTEGER,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`ALTER TABLE ai_article_drafts ADD COLUMN IF NOT EXISTS suggested_series_name TEXT`;
+  await sql`ALTER TABLE ai_article_drafts ADD COLUMN IF NOT EXISTS suggested_series_order INTEGER`;
+  await sql`CREATE INDEX IF NOT EXISTS ai_article_drafts_status_created_idx ON ai_article_drafts (status, created_at DESC)`;
+  await sql`CREATE INDEX IF NOT EXISTS ai_article_drafts_source_url_idx ON ai_article_drafts (source_url, created_at DESC)`;
+}
+
+export async function ensureNewsDraftsDatabase() {
+  if (!schemaPromise) schemaPromise = initializeNewsDraftSchema();
+  try {
+    await schemaPromise;
+  } catch (error) {
+    schemaPromise = null;
+    throw error;
+  }
+}
+
 function list<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
@@ -75,6 +121,7 @@ function mapDraft(row: DraftRecord): NewsDraft {
 }
 
 export async function findReusableDraft(sourceUrl: string) {
+  await ensureNewsDraftsDatabase();
   const sql = getDatabaseSql();
   const rows = (await sql`
     SELECT id, status, source_url, source_title, source_publisher,
@@ -89,6 +136,7 @@ export async function findReusableDraft(sourceUrl: string) {
 }
 
 export async function createGeneratingDraft(sourceUrl: string) {
+  await ensureNewsDraftsDatabase();
   const id = randomUUID();
   const sql = getDatabaseSql();
   await sql`INSERT INTO ai_article_drafts (id, status, source_url) VALUES (${id}, 'generating', ${sourceUrl})`;
@@ -113,6 +161,7 @@ export async function saveReadyDraft(
     isNewSeries: boolean;
   }
 ) {
+  await ensureNewsDraftsDatabase();
   const sql = getDatabaseSql();
   await sql`
     UPDATE ai_article_drafts SET
@@ -130,6 +179,7 @@ export async function saveReadyDraft(
 }
 
 export async function saveFailedDraft(id: string, message: string) {
+  await ensureNewsDraftsDatabase();
   const sql = getDatabaseSql();
   await sql`
     UPDATE ai_article_drafts SET status = 'failed', error_message = ${message.slice(0, 500)}, updated_at = NOW()
@@ -138,6 +188,7 @@ export async function saveFailedDraft(id: string, message: string) {
 }
 
 export async function getNewsDraft(id: string) {
+  await ensureNewsDraftsDatabase();
   const sql = getDatabaseSql();
   const rows = (await sql`
     SELECT id, status, source_url, source_title, source_publisher,
@@ -150,6 +201,7 @@ export async function getNewsDraft(id: string) {
 }
 
 export async function getRecentNewsDrafts() {
+  await ensureNewsDraftsDatabase();
   const sql = getDatabaseSql();
   const rows = (await sql`
     SELECT id, status, source_url, source_title, source_publisher,
@@ -162,6 +214,7 @@ export async function getRecentNewsDrafts() {
 }
 
 export async function markDraftPublished(id: string, slug: string) {
+  await ensureNewsDraftsDatabase();
   const sql = getDatabaseSql();
   await sql`
     UPDATE ai_article_drafts SET status = 'published', published_post_slug = ${slug}, updated_at = NOW()
