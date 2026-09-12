@@ -1172,6 +1172,20 @@ h3 {
   margin-bottom: 1rem;
 }
 
+.draftThemeNotice {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: 12px;
+  background: var(--accent-soft);
+}
+
+.draftThemeNotice span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .pill {
   text-transform: capitalize;
 }

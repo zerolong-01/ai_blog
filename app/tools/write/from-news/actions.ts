@@ -7,6 +7,8 @@ import { logAdminEvent } from "@/lib/admin-audit";
 import { createGeneratingDraft, findReusableDraft, saveFailedDraft, saveReadyDraft } from "@/lib/news-drafts";
 import { fetchNewsSource, NewsSourceError, validatePublicNewsUrl } from "@/lib/news-source";
 import { generateArticle } from "@/lib/openai-article";
+import { getAllReviewMeta } from "@/lib/reviews";
+import { buildSeriesContext } from "@/lib/series-assignment";
 
 export type GenerateNewsDraftResult =
   | { ok: true; draftId: string }
@@ -44,7 +46,8 @@ export async function generateNewsDraftAction(
       ? { url: canonicalUrl, title: "", publisher: sourceUrl.hostname.replace(/^www\./, ""), text: pastedText.slice(0, 100_000) }
       : await fetchNewsSource(canonicalUrl);
     if (source.text.length < 500) throw new NewsSourceError("EXTRACTION_FAILED", "Paste at least 500 characters of article text.");
-    const article = await generateArticle(source);
+    const existingSeries = buildSeriesContext(await getAllReviewMeta());
+    const article = await generateArticle(source, existingSeries);
     await saveReadyDraft(draftId, source, article);
     await logAdminEvent("news_draft_generated", { target: draftId, outcome: "success" });
     revalidatePath(`/tools/write/from-news/${draftId}`);
