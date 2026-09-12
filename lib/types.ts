@@ -6,8 +6,6 @@ export type ToolCategory =
   | "video"
   | "developer";
 
-export type PostStatus = "draft" | "published";
-
 export type ToolReviewMeta = {
   slug: string;
   name: string;
@@ -22,8 +20,11 @@ export type ToolReviewMeta = {
   cons: string[];
   features: string[];
   verdict: string;
+  author: string;
+  publishedAt: string;
   updatedAt: string;
-  status: PostStatus;
+  seriesName?: string;
+  seriesOrder?: number;
 };
 
 export type ToolReview = ToolReviewMeta & {

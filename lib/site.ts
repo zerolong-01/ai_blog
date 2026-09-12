@@ -5,6 +5,7 @@ export const siteConfig = {
     "A clean editorial blog covering AI tools, workflows, ideas, and the shifts shaping how people work.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://toolaiatlas.com",
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@toolaiatlas.com",
+  googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || "",
   locale: "en_US",
   creator: "Stacked AI",
   keywords: [

@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { renderMarkdown } from "@/lib/markdown";
-import { getReviewBySlugForAdmin } from "@/lib/reviews";
+import { getReviewBySlug } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
 
@@ -39,7 +39,7 @@ export default async function PreviewPostPage({ params }: PreviewPostPageProps) 
   }
 
   const { slug } = await params;
-  const post = await getReviewBySlugForAdmin(slug);
+  const post = await getReviewBySlug(slug);
 
   if (!post) {
     notFound();
@@ -51,8 +51,8 @@ export default async function PreviewPostPage({ params }: PreviewPostPageProps) 
   return (
     <article className="container reviewShell">
       <div className="previewToolbar">
-        <span className={post.status === "published" ? "statusPublished" : "statusDraft"}>{post.status}</span>
-        <span>Private editorial preview</span>
+        <span className="statusPublished">published</span>
+        <span>Editorial preview</span>
         <Link href={editHref} className="secondaryButton">
           Edit post
         </Link>

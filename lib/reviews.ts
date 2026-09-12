@@ -2,32 +2,40 @@ import { ToolReview, ToolReviewMeta } from "@/lib/types";
 import { getBundledReviewBySlug, getBundledReviewMeta, getBundledReviews } from "@/lib/reviews-fallback";
 import {
   deletePost,
-  getAllPostRecordsForAdmin,
   getDatabaseStorageStatus,
   getPostCountBySlug,
   getPostRecordBySlug,
-  getPostRecordBySlugForAdmin,
   getPostRecords,
   insertPost,
   toReview,
   toReviewMeta
 } from "@/lib/posts-db";
+import { siteConfig } from "@/lib/site";
 
-type CreateReviewInput = Omit<ToolReviewMeta, "slug" | "updatedAt"> & {
+type CreateReviewInput = Omit<ToolReviewMeta, "slug" | "author" | "publishedAt" | "updatedAt"> & {
   content: string;
   slug?: string;
   updatedAt?: string;
 };
 
-type UpdateReviewInput = Omit<ToolReviewMeta, "updatedAt"> & {
+type UpdateReviewInput = Omit<ToolReviewMeta, "author" | "publishedAt" | "updatedAt"> & {
   content: string;
 };
 
 export type ReviewStorageStatus = {
   error: string | null;
-  mode: "database";
+  mode: "database" | "fallback";
+  postCount?: number;
   target: string;
 };
+
+function reportStorageFailure(operation: string, error: unknown) {
+  console.error("[review-storage]", {
+    operation,
+    message: error instanceof Error ? error.message : String(error),
+    timestamp: new Date().toISOString()
+  });
+}
 
 function slugify(value: string) {
   return value
@@ -65,7 +73,8 @@ export async function getAllReviews() {
   try {
     const records = await getPostRecords();
     return records.map(toReview);
-  } catch {
+  } catch (error) {
+    reportStorageFailure("getAllReviews", error);
     return getBundledReviews();
   }
 }
@@ -74,19 +83,42 @@ export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
   try {
     const records = await getPostRecords();
     return records.map(toReviewMeta).map((review) => ({ ...review }));
-  } catch {
+  } catch (error) {
+    reportStorageFailure("getAllReviewMeta", error);
     const fallbackReviews = await getBundledReviewMeta();
     return fallbackReviews.map((review) => ({ ...review }));
   }
 }
 
-export async function getAllReviewMetaForAdmin(): Promise<ToolReviewMeta[]> {
+export async function getAllReviewMetaWithStatus(): Promise<{
+  posts: ToolReviewMeta[];
+  storage: ReviewStorageStatus;
+}> {
   try {
-    const records = await getAllPostRecordsForAdmin();
-    return records.map(toReviewMeta).map((review) => ({ ...review }));
-  } catch {
-    const fallbackReviews = await getBundledReviewMeta();
-    return fallbackReviews.map((review) => ({ ...review }));
+    const records = await getPostRecords();
+
+    return {
+      posts: records.map(toReviewMeta).map((review) => ({ ...review })),
+      storage: {
+        error: null,
+        mode: "database",
+        postCount: records.length,
+        target: "Neon Postgres"
+      }
+    };
+  } catch (error) {
+    reportStorageFailure("getAllReviewMetaWithStatus", error);
+    const posts = (await getBundledReviewMeta()).map((review) => ({ ...review }));
+
+    return {
+      posts,
+      storage: {
+        error: error instanceof Error ? error.message : "Unknown database error.",
+        mode: "fallback",
+        postCount: posts.length,
+        target: "Bundled emergency content"
+      }
+    };
   }
 }
 
@@ -100,23 +132,8 @@ export async function getReviewBySlug(slug: string) {
   try {
     const record = await getPostRecordBySlug(normalizedSlug);
     return record ? { ...toReview(record) } : undefined;
-  } catch {
-    const fallbackReview = await getBundledReviewBySlug(normalizedSlug);
-    return fallbackReview ? { ...fallbackReview } : undefined;
-  }
-}
-
-export async function getReviewBySlugForAdmin(slug: string) {
-  const normalizedSlug = slugify(slug);
-
-  if (!normalizedSlug) {
-    return undefined;
-  }
-
-  try {
-    const record = await getPostRecordBySlugForAdmin(normalizedSlug);
-    return record ? { ...toReview(record) } : undefined;
-  } catch {
+  } catch (error) {
+    reportStorageFailure("getReviewBySlug", error);
     const fallbackReview = await getBundledReviewBySlug(normalizedSlug);
     return fallbackReview ? { ...fallbackReview } : undefined;
   }
@@ -125,6 +142,18 @@ export async function getReviewBySlugForAdmin(slug: string) {
 export async function getReviewsByCategory(category: string) {
   const reviews = await getAllReviewMeta();
   return reviews.filter((review) => review.category === category);
+}
+
+export async function getReviewsBySeries(seriesName: string) {
+  const reviews = await getAllReviewMeta();
+
+  return reviews
+    .filter((review) => review.seriesName === seriesName)
+    .sort(
+      (left, right) =>
+        (left.seriesOrder ?? Number.MAX_SAFE_INTEGER) - (right.seriesOrder ?? Number.MAX_SAFE_INTEGER) ||
+        left.publishedAt.localeCompare(right.publishedAt)
+    );
 }
 
 export async function createReviewFile(input: CreateReviewInput) {
@@ -138,6 +167,8 @@ export async function createReviewFile(input: CreateReviewInput) {
   const review: ToolReview = {
     ...input,
     slug,
+    author: siteConfig.creator,
+    publishedAt: input.updatedAt || new Date().toISOString().slice(0, 10),
     updatedAt: input.updatedAt || new Date().toISOString().slice(0, 10),
     rating: Number(input.rating),
     content: input.content.trim()
@@ -164,6 +195,8 @@ export async function updateReviewFile(input: UpdateReviewInput) {
   const review: ToolReview = {
     ...input,
     slug,
+    author: existingReview.author,
+    publishedAt: existingReview.publishedAt,
     updatedAt: new Date().toISOString().slice(0, 10),
     rating: Number(input.rating),
     content: input.content.trim()

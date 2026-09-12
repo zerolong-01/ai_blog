@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminAuth } from "@/lib/admin-auth";
+import { logAdminEvent } from "@/lib/admin-audit";
+import { exceedsUtf8Bytes, INPUT_LIMITS } from "@/lib/input-validation";
+import { markDraftPublished } from "@/lib/news-drafts";
 import { createReviewFile, updateReviewFile } from "@/lib/reviews";
 
 export type ReviewFormState = {
@@ -30,12 +33,32 @@ function revalidatePostPaths(slug: string) {
   revalidatePath("/tools");
   revalidatePath("/search");
   revalidatePath("/categories");
+  revalidatePath("/series");
   revalidatePath(`/tools/${slug}`);
   revalidatePath("/sitemap.xml");
 }
 
-function getStatus(formData: FormData) {
-  return formData.get("status") === "draft" ? "draft" : "published";
+function getSeriesFields(formData: FormData) {
+  const seriesName = String(formData.get("seriesName") || "").trim();
+  const rawSeriesOrder = String(formData.get("seriesOrder") || "").trim();
+
+  if (!seriesName && !rawSeriesOrder) {
+    return { seriesName: undefined, seriesOrder: undefined };
+  }
+
+  const seriesOrder = Number(rawSeriesOrder);
+
+  if (
+    !seriesName ||
+    seriesName.length > INPUT_LIMITS.postSeriesName ||
+    !Number.isInteger(seriesOrder) ||
+    seriesOrder < 1 ||
+    seriesOrder > INPUT_LIMITS.postSeriesOrder
+  ) {
+    throw new Error("Series name and a valid part number must be provided together.");
+  }
+
+  return { seriesName, seriesOrder };
 }
 
 export async function createReviewAction(
@@ -46,15 +69,19 @@ export async function createReviewAction(
 
   const name = String(formData.get("name") || "").trim();
   const content = String(formData.get("content") || "").trim();
-  const status = getStatus(formData);
+  const generatedSummary = String(formData.get("generatedSummary") || "").trim();
 
   if (!name || !content) {
     return { error: "Title and content are required." };
+  }
+  if (name.length > INPUT_LIMITS.postTitle || exceedsUtf8Bytes(content, INPUT_LIMITS.postContentBytes)) {
+    return { error: "Title or content exceeds the allowed size." };
   }
 
   let slug: string;
 
   try {
+    const series = getSeriesFields(formData);
     const review = await createReviewFile({
       slug: String(formData.get("slug") || ""),
       name,
@@ -63,13 +90,13 @@ export async function createReviewAction(
       website: "",
       price: "",
       rating: 0,
-      status,
-      summary: getSummary(content),
+      summary: generatedSummary.slice(0, 180) || getSummary(content),
       verdict: "",
       bestFor: [],
       pros: [],
       cons: [],
       features: [],
+      ...series,
       content
     });
 
@@ -81,8 +108,14 @@ export async function createReviewAction(
   }
 
   revalidatePostPaths(slug);
+  const draftId = String(formData.get("draftId") || "").trim();
+  if (draftId) {
+    await markDraftPublished(draftId, slug);
+    await logAdminEvent("news_draft_published", { target: draftId, outcome: "success" });
+  }
+  await logAdminEvent("post_created", { target: slug, outcome: "success" });
 
-  redirect(status === "draft" ? "/admin" : `/tools/${slug}`);
+  redirect(`/tools/${slug}`);
 }
 
 export async function updateReviewAction(
@@ -94,15 +127,22 @@ export async function updateReviewAction(
   const slug = String(formData.get("slug") || "").trim();
   const name = String(formData.get("name") || "").trim();
   const content = String(formData.get("content") || "").trim();
-  const status = getStatus(formData);
 
   if (!slug || !name || !content) {
     return { error: "Slug, title, and content are required." };
+  }
+  if (
+    slug.length > INPUT_LIMITS.postSlug ||
+    name.length > INPUT_LIMITS.postTitle ||
+    exceedsUtf8Bytes(content, INPUT_LIMITS.postContentBytes)
+  ) {
+    return { error: "Slug, title, or content exceeds the allowed size." };
   }
 
   let updatedSlug: string;
 
   try {
+    const series = getSeriesFields(formData);
     const review = await updateReviewFile({
       slug,
       name,
@@ -111,13 +151,13 @@ export async function updateReviewAction(
       website: "",
       price: "",
       rating: 0,
-      status,
       summary: getSummary(content),
       verdict: "",
       bestFor: [],
       pros: [],
       cons: [],
       features: [],
+      ...series,
       content
     });
 
@@ -129,5 +169,6 @@ export async function updateReviewAction(
   }
 
   revalidatePostPaths(updatedSlug);
-  redirect(status === "draft" ? "/admin" : `/tools/${updatedSlug}`);
+  await logAdminEvent("post_updated", { target: updatedSlug, outcome: "success" });
+  redirect(`/tools/${updatedSlug}`);
 }

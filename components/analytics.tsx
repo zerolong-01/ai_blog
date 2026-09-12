@@ -4,13 +4,13 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
-export function Analytics() {
+export function Analytics({ nonce }: { nonce?: string }) {
   return (
     <>
       {gaId ? (
         <>
-          <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
-          <Script id="ga-script" strategy="afterInteractive">
+          <Script nonce={nonce} src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
+          <Script nonce={nonce} id="ga-script" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}

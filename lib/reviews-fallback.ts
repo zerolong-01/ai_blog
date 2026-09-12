@@ -3,6 +3,7 @@ import path from "node:path";
 
 import matter from "gray-matter";
 
+import { siteConfig } from "@/lib/site";
 import { ToolCategory, ToolReview, ToolReviewMeta } from "@/lib/types";
 
 type ReviewFrontmatter = Omit<ToolReviewMeta, "rating"> & {
@@ -63,8 +64,9 @@ function toToolReview(fileSlug: string, frontmatter: ReviewFrontmatter, content:
     cons: normalizeList(frontmatter.cons),
     features: normalizeList(frontmatter.features),
     verdict: String(frontmatter.verdict || ""),
+    author: String(frontmatter.author || siteConfig.creator),
+    publishedAt: String(frontmatter.publishedAt || frontmatter.updatedAt || new Date().toISOString().slice(0, 10)),
     updatedAt: String(frontmatter.updatedAt || new Date().toISOString().slice(0, 10)),
-    status: "published",
     content
   };
 }

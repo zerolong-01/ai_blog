@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { type AdminAuthState, loginAdminAction } from "@/app/admin/actions";
+import { INPUT_LIMITS } from "@/lib/input-validation";
 
 const initialState: AdminAuthState = {
   error: null
@@ -26,11 +27,17 @@ export function AdminLoginForm() {
     <form action={formAction} className="adminLoginForm">
       <label className="fieldGroup fieldSpanFull">
         <span>Admin id</span>
-        <input name="id" type="text" autoComplete="username" required />
+        <input name="id" type="text" autoComplete="username" maxLength={INPUT_LIMITS.adminId} required />
       </label>
       <label className="fieldGroup fieldSpanFull">
         <span>Admin password</span>
-        <input name="password" type="password" autoComplete="current-password" required />
+        <input
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          maxLength={INPUT_LIMITS.adminPassword}
+          required
+        />
       </label>
       {state.error ? <p className="formError">{state.error}</p> : null}
       <LoginButton />

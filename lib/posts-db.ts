@@ -1,16 +1,6 @@
-import { existsSync } from "node:fs";
-import { readdir, readFile } from "node:fs/promises";
-import path from "node:path";
-
-import matter from "gray-matter";
-import { neon } from "@neondatabase/serverless";
-
+import { getDatabaseSql } from "@/lib/database";
+import { siteConfig } from "@/lib/site";
 import { ToolCategory, ToolReview, ToolReviewMeta } from "@/lib/types";
-
-type ReviewFrontmatter = Omit<ToolReviewMeta, "rating"> & {
-  title?: string;
-  rating: number | string;
-};
 
 type CountRow = {
   count: string | number;
@@ -30,8 +20,10 @@ type PostRecord = {
   cons: unknown;
   features: unknown;
   verdict: string;
+  author: string;
   content: string;
-  is_published: boolean;
+  series_name: string | null;
+  series_order: string | number | null;
   created_at: string;
   updated_at: string;
 };
@@ -63,37 +55,8 @@ function toDateOnly(value: string | Date | undefined) {
   return parsedDate.toISOString().slice(0, 10);
 }
 
-function getConnectionString() {
-  const connectionString = process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim();
-
-  if (!connectionString) {
-    throw new Error("DATABASE_URL is not configured.");
-  }
-
-  return connectionString;
-}
-
 function getSql() {
-  return neon(getConnectionString());
-}
-
-function getBundledReviewsDirectory() {
-  return path.join(process.cwd(), "content", "reviews");
-}
-
-function normalizeList(value: unknown) {
-  if (Array.isArray(value)) {
-    return value.map(String).map((item) => item.trim()).filter(Boolean);
-  }
-
-  if (typeof value === "string") {
-    return value
-      .split("\n")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
+  return getDatabaseSql();
 }
 
 function parseList(value: unknown) {
@@ -113,39 +76,8 @@ function parseList(value: unknown) {
   return [];
 }
 
-function toToolReview(fileSlug: string, frontmatter: ReviewFrontmatter, content: string): ToolReview {
-  const name = String(frontmatter.name || frontmatter.title || fileSlug);
-  const summary =
-    String(frontmatter.summary || "").trim() ||
-    content
-      .replace(/^#+\s+/gm, "")
-      .split(/\n\s*\n/)
-      .map((block) => block.trim())
-      .find(Boolean)
-      ?.slice(0, 180) ||
-    "";
-
-  return {
-    slug: String(frontmatter.slug || fileSlug),
-    name,
-    tagline: String(frontmatter.tagline || ""),
-    category: (frontmatter.category as ToolCategory) || "general",
-    website: String(frontmatter.website || ""),
-    price: String(frontmatter.price || ""),
-    rating: Number(frontmatter.rating || 0),
-    summary,
-    bestFor: normalizeList(frontmatter.bestFor),
-    pros: normalizeList(frontmatter.pros),
-    cons: normalizeList(frontmatter.cons),
-    features: normalizeList(frontmatter.features),
-    verdict: String(frontmatter.verdict || ""),
-    updatedAt: String(frontmatter.updatedAt || new Date().toISOString().slice(0, 10)),
-    status: "published",
-    content
-  };
-}
-
 function mapRecordToReview(record: PostRecord): ToolReview {
+  const publishedAt = toDateOnly(record.created_at);
   const updatedAt = toDateOnly(record.updated_at);
 
   return {
@@ -162,31 +94,13 @@ function mapRecordToReview(record: PostRecord): ToolReview {
     cons: parseList(record.cons),
     features: parseList(record.features),
     verdict: record.verdict,
+    author: record.author || siteConfig.creator,
+    publishedAt,
     updatedAt,
-    status: record.is_published ? "published" : "draft",
+    seriesName: record.series_name || undefined,
+    seriesOrder: record.series_order == null ? undefined : Number(record.series_order),
     content: record.content
   };
-}
-
-async function importBundledMdxPosts() {
-  const directory = getBundledReviewsDirectory();
-
-  if (!existsSync(directory)) {
-    return;
-  }
-
-  const filenames = (await readdir(directory)).filter((filename) => filename.endsWith(".mdx"));
-
-  if (filenames.length === 0) {
-    return;
-  }
-
-  for (const filename of filenames) {
-    const source = await readFile(path.join(directory, filename), "utf8");
-    const { data, content } = matter(source);
-    const review = toToolReview(filename.replace(/\.mdx$/, ""), data as ReviewFrontmatter, content.trim());
-    await upsertPost(review);
-  }
 }
 
 async function upsertPost(review: ToolReview) {
@@ -208,8 +122,10 @@ async function upsertPost(review: ToolReview) {
       cons,
       features,
       verdict,
+      author,
       content,
-      is_published,
+      series_name,
+      series_order,
       created_at,
       updated_at
     ) VALUES (
@@ -226,9 +142,11 @@ async function upsertPost(review: ToolReview) {
       ${JSON.stringify(review.cons)}::jsonb,
       ${JSON.stringify(review.features)}::jsonb,
       ${review.verdict},
+      ${review.author},
       ${review.content},
-      ${review.status === "published"},
-      ${normalizedUpdatedAt}::date,
+      ${review.seriesName || null},
+      ${review.seriesOrder ?? null},
+      ${toDateOnly(review.publishedAt)}::date,
       ${normalizedUpdatedAt}::date
     )
     ON CONFLICT (slug) DO UPDATE SET
@@ -244,8 +162,10 @@ async function upsertPost(review: ToolReview) {
       cons = EXCLUDED.cons,
       features = EXCLUDED.features,
       verdict = EXCLUDED.verdict,
+      author = EXCLUDED.author,
       content = EXCLUDED.content,
-      is_published = EXCLUDED.is_published,
+      series_name = EXCLUDED.series_name,
+      series_order = EXCLUDED.series_order,
       updated_at = EXCLUDED.updated_at
   `;
 }
@@ -257,38 +177,7 @@ async function initializeDatabase() {
 
   const sql = getSql();
 
-  await sql`
-    CREATE TABLE IF NOT EXISTS posts (
-      slug TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      tagline TEXT NOT NULL DEFAULT '',
-      category TEXT NOT NULL DEFAULT 'general',
-      website TEXT NOT NULL DEFAULT '',
-      price TEXT NOT NULL DEFAULT '',
-      rating DOUBLE PRECISION NOT NULL DEFAULT 0,
-      summary TEXT NOT NULL DEFAULT '',
-      best_for JSONB NOT NULL DEFAULT '[]'::jsonb,
-      pros JSONB NOT NULL DEFAULT '[]'::jsonb,
-      cons JSONB NOT NULL DEFAULT '[]'::jsonb,
-      features JSONB NOT NULL DEFAULT '[]'::jsonb,
-      verdict TEXT NOT NULL DEFAULT '',
-      content TEXT NOT NULL,
-      is_published BOOLEAN NOT NULL DEFAULT TRUE,
-      created_at DATE NOT NULL,
-      updated_at DATE NOT NULL
-    )
-  `;
-
-  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT TRUE`;
-
-  await sql`CREATE INDEX IF NOT EXISTS posts_updated_at_idx ON posts (updated_at DESC)`;
-  await sql`CREATE INDEX IF NOT EXISTS posts_category_idx ON posts (category)`;
-
-  const countRows = (await sql`SELECT COUNT(*)::int AS count FROM posts`) as CountRow[];
-
-  if (Number(countRows[0]?.count || 0) === 0) {
-    await importBundledMdxPosts();
-  }
+  await sql`SELECT 1 FROM posts LIMIT 1`;
 
   initialized = true;
 }
@@ -298,10 +187,15 @@ export async function ensurePostsDatabase() {
     initializationPromise = initializeDatabase();
   }
 
-  await initializationPromise;
+  try {
+    await initializationPromise;
+  } catch (error) {
+    initializationPromise = null;
+    throw error;
+  }
 }
 
-async function getPostRecordsByVisibility(visibility: "all" | "published") {
+export async function getPostRecords() {
   await ensurePostsDatabase();
   const sql = getSql();
 
@@ -320,25 +214,18 @@ async function getPostRecordsByVisibility(visibility: "all" | "published") {
       cons,
       features,
       verdict,
+      author,
       content,
-      is_published,
+      series_name,
+      series_order,
       created_at::text,
       updated_at::text
     FROM posts
-    WHERE ${visibility} = 'all' OR is_published = TRUE
     ORDER BY updated_at DESC, slug DESC
   `) as PostRecord[];
 }
 
-export async function getPostRecords() {
-  return getPostRecordsByVisibility("published");
-}
-
-export async function getAllPostRecordsForAdmin() {
-  return getPostRecordsByVisibility("all");
-}
-
-async function getPostRecordBySlugWithVisibility(slug: string, visibility: "all" | "published") {
+export async function getPostRecordBySlug(slug: string) {
   await ensurePostsDatabase();
   const sql = getSql();
 
@@ -357,24 +244,18 @@ async function getPostRecordBySlugWithVisibility(slug: string, visibility: "all"
       cons,
       features,
       verdict,
+      author,
       content,
-      is_published,
+      series_name,
+      series_order,
       created_at::text,
       updated_at::text
     FROM posts
-    WHERE slug = ${slug} AND (${visibility} = 'all' OR is_published = TRUE)
+    WHERE slug = ${slug}
     LIMIT 1
   `) as PostRecord[];
 
   return rows[0] ?? null;
-}
-
-export async function getPostRecordBySlug(slug: string) {
-  return getPostRecordBySlugWithVisibility(slug, "published");
-}
-
-export async function getPostRecordBySlugForAdmin(slug: string) {
-  return getPostRecordBySlugWithVisibility(slug, "all");
 }
 
 export async function getPostCountBySlug(slug: string) {

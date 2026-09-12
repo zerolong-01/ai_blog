@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import { AdSenseScript } from "@/components/adsense-script";
 import { Analytics } from "@/components/analytics";
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   keywords: siteConfig.keywords,
   alternates: {
-    canonical: absoluteUrl("/")
+    canonical: absoluteUrl("/"),
+    types: {
+      "application/rss+xml": absoluteUrl("/rss.xml")
+    }
   },
   openGraph: {
     title: siteConfig.name,
@@ -31,22 +35,49 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,
-    description: siteConfig.description
+    description: siteConfig.description,
+    images: [absoluteUrl("/opengraph-image")]
   },
+  verification: siteConfig.googleSiteVerification
+    ? {
+        google: siteConfig.googleSiteVerification
+      }
+    : undefined,
   category: "technology"
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = (await headers()).get("x-nonce") || undefined;
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": absoluteUrl("/#organization"),
+    name: siteConfig.name,
+    url: siteConfig.url,
+    email: siteConfig.contactEmail,
+    logo: absoluteUrl("/opengraph-image")
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Analytics />
+        <Analytics nonce={nonce} />
       </head>
       <body>
-        <ThemeScript />
-        <AdSenseScript />
+        <script
+          nonce={nonce}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }}
+        />
+        <ThemeScript nonce={nonce} />
+        <AdSenseScript nonce={nonce} />
+        <a href="#main-content" className="skipLink">
+          Skip to main content
+        </a>
         <Header />
-        <main>{children}</main>
+        <main id="main-content" tabIndex={-1}>
+          {children}
+        </main>
         <Footer />
       </body>
     </html>
