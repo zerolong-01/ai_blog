@@ -13,7 +13,10 @@ export const dynamic = "force-dynamic";
 export default async function NewsDraftPage({ params }: PageProps) {
   if (!(await isAdminAuthenticated())) redirect("/admin");
   const { id } = await params;
-  const draft = await getNewsDraft(id);
+  const draft = await getNewsDraft(id).catch((error) => {
+    console.error("[news-draft-page]", { id, message: error instanceof Error ? error.message : String(error) });
+    return undefined;
+  });
   if (!draft) notFound();
   if (draft.status === "published" && draft.publishedPostSlug) redirect(`/tools/${draft.publishedPostSlug}`);
 

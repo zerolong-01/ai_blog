@@ -53,6 +53,12 @@ let schemaPromise: Promise<void> | null = null;
 
 async function initializeNewsDraftSchema() {
   const sql = getDatabaseSql();
+  try {
+    await sql`SELECT suggested_series_name, suggested_series_order FROM ai_article_drafts LIMIT 0`;
+    return;
+  } catch {
+    // The migration may not have run yet. Attempt the idempotent bootstrap below.
+  }
   await sql`
     CREATE TABLE IF NOT EXISTS ai_article_drafts (
       id TEXT PRIMARY KEY,
@@ -83,6 +89,7 @@ async function initializeNewsDraftSchema() {
   await sql`ALTER TABLE ai_article_drafts ADD COLUMN IF NOT EXISTS suggested_series_order INTEGER`;
   await sql`CREATE INDEX IF NOT EXISTS ai_article_drafts_status_created_idx ON ai_article_drafts (status, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS ai_article_drafts_source_url_idx ON ai_article_drafts (source_url, created_at DESC)`;
+  await sql`SELECT suggested_series_name, suggested_series_order FROM ai_article_drafts LIMIT 0`;
 }
 
 export async function ensureNewsDraftsDatabase() {
