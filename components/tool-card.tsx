@@ -18,7 +18,7 @@ export function ToolCard({ tool }: ToolCardProps) {
       {tool.tagline ? <p className="tagline">{tool.tagline}</p> : null}
       <p>{tool.summary}</p>
       <Link href={`/tools/${tool.slug}`} className="textLink">
-        Read post
+        Read article <span aria-hidden="true">↗</span>
       </Link>
     </article>
   );

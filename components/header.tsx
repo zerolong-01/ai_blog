@@ -51,8 +51,14 @@ export function Header() {
     <header className="siteHeader">
       <div className="container navShell">
         <Link href="/" className="brandMark">
+          <span className="brandGlyph" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
           <span>
             <strong>Stacked AI</strong>
+            <small>INTELLIGENCE / APPLIED</small>
           </span>
         </Link>
 
