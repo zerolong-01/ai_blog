@@ -52,6 +52,9 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
         <Link href={`/tools/${post.slug}/edit` as Route} className="feedTab feedTabActive">
           Edit
         </Link>
+        <Link href={`/tools/${post.slug}/preview` as Route} className="feedTab">
+          Preview
+        </Link>
       </div>
 
       <div className="writeMain writeMainSolo">

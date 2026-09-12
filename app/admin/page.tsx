@@ -85,6 +85,9 @@ export default async function AdminPage() {
             </div>
 
             <div className="adminActions">
+              <Link href={`/tools/${post.slug}/preview` as Route} className="secondaryButton">
+                Preview
+              </Link>
               <Link href={`/tools/${post.slug}/edit` as Route} className="secondaryButton">
                 Edit
               </Link>

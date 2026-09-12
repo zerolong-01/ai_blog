@@ -709,6 +709,21 @@ h3 {
   text-align: center;
 }
 
+.previewToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.previewToolbar .secondaryButton {
+  padding: 0.55rem 0.9rem;
+}
+
 .legalShell .pageIntro,
 .legalContent {
   max-width: 860px;
@@ -913,6 +928,10 @@ h3 {
   .feedFooter {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .previewToolbar {
+    justify-content: flex-start;
   }
 
   .adminCard,
