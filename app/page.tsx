@@ -39,10 +39,10 @@ export default async function HomePage() {
       <section className="minimalHero">
         <div className="container minimalHeroGrid">
           <div className="minimalHeroCopy">
-            <span className="eyebrow">Independent AI blog</span>
-            <h1>Thoughtful writing about AI.</h1>
+            <span className="eyebrow"><span className="statusDot" /> Independent AI intelligence</span>
+            <h1>Understand what&apos;s <span className="gradientText">next in AI.</span></h1>
             <p className="heroCopy">
-              Notes on tools, workflows, trends, and the broader ideas shaping how people use AI.
+              Clear analysis of the models, tools, and workflows moving artificial intelligence from research into the real world.
             </p>
             <div className="ctaRow">
               <Link href="#latest-posts" className="primaryButton">
@@ -55,13 +55,15 @@ export default async function HomePage() {
           </div>
 
           <div className="minimalArtwork" aria-hidden="true">
-            <div className="artFlower" />
-            <div className="artBox" />
+            <div className="visualLabel"><span>AI SIGNAL</span><strong>LIVE</strong></div>
+            <div className="artFlower"><span>01</span><span>AI</span><span>∞</span></div>
+            <div className="artBox"><i /><i /><i /><i /><i /><i /></div>
             <div className="artLine artLineOne" />
             <div className="artLine artLineTwo" />
             <div className="artDot artDotOne" />
             <div className="artDot artDotTwo" />
             <div className="artDot artDotThree" />
+            <div className="visualFooter"><span>MODEL / DATA / SYSTEM</span><span>2026</span></div>
           </div>
         </div>
       </section>

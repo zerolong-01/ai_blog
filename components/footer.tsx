@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="siteFooter">
       <div className="container footerBar">
-        <p>Stacked AI publishes practical writing on AI tools, workflows, ideas, and the way the space is changing.</p>
+        <p><strong>Stacked AI</strong> — Signal over noise in artificial intelligence.</p>
         <div className="footerInlineLinks">
           <Link href="/tools">Blog</Link>
           <Link href="/series">Series</Link>
