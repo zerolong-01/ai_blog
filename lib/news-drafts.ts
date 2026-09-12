@@ -1,0 +1,159 @@
+import { randomUUID } from "node:crypto";
+
+import { getDatabaseSql } from "@/lib/database";
+
+export type DraftStatus = "generating" | "ready" | "failed" | "published";
+
+export type DraftSource = {
+  title: string;
+  url: string;
+  publisher: string;
+};
+
+export type NewsDraft = {
+  id: string;
+  status: DraftStatus;
+  sourceUrl: string;
+  sourceTitle: string;
+  sourcePublisher: string;
+  sourcePublishedAt?: string;
+  supportingSources: DraftSource[];
+  generatedTitle: string;
+  generatedSummary: string;
+  generatedContent: string;
+  warnings: string[];
+  model: string;
+  errorMessage?: string;
+  publishedPostSlug?: string;
+};
+
+type DraftRecord = {
+  id: string;
+  status: DraftStatus;
+  source_url: string;
+  source_title: string;
+  source_publisher: string;
+  source_published_at: string | null;
+  supporting_sources: unknown;
+  generated_title: string;
+  generated_summary: string;
+  generated_content: string;
+  warnings: unknown;
+  model: string;
+  error_message: string | null;
+  published_post_slug: string | null;
+};
+
+function list<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function mapDraft(row: DraftRecord): NewsDraft {
+  return {
+    id: row.id,
+    status: row.status,
+    sourceUrl: row.source_url,
+    sourceTitle: row.source_title,
+    sourcePublisher: row.source_publisher,
+    sourcePublishedAt: row.source_published_at || undefined,
+    supportingSources: list<DraftSource>(row.supporting_sources),
+    generatedTitle: row.generated_title,
+    generatedSummary: row.generated_summary,
+    generatedContent: row.generated_content,
+    warnings: list<string>(row.warnings),
+    model: row.model,
+    errorMessage: row.error_message || undefined,
+    publishedPostSlug: row.published_post_slug || undefined
+  };
+}
+
+export async function findReusableDraft(sourceUrl: string) {
+  const sql = getDatabaseSql();
+  const rows = (await sql`
+    SELECT id, status, source_url, source_title, source_publisher,
+      source_published_at::text, supporting_sources, generated_title,
+      generated_summary, generated_content, warnings, model,
+      error_message, published_post_slug
+    FROM ai_article_drafts
+    WHERE source_url = ${sourceUrl} AND status IN ('generating', 'ready')
+    ORDER BY created_at DESC LIMIT 1
+  `) as DraftRecord[];
+  return rows[0] ? mapDraft(rows[0]) : undefined;
+}
+
+export async function createGeneratingDraft(sourceUrl: string) {
+  const id = randomUUID();
+  const sql = getDatabaseSql();
+  await sql`INSERT INTO ai_article_drafts (id, status, source_url) VALUES (${id}, 'generating', ${sourceUrl})`;
+  return id;
+}
+
+export async function saveReadyDraft(
+  id: string,
+  source: { title: string; publisher: string; publishedAt?: string; text: string },
+  generated: {
+    title: string;
+    summary: string;
+    markdown: string;
+    sources: DraftSource[];
+    warnings: string[];
+    model: string;
+    responseId: string;
+    inputTokens?: number;
+    outputTokens?: number;
+  }
+) {
+  const sql = getDatabaseSql();
+  await sql`
+    UPDATE ai_article_drafts SET
+      status = 'ready', source_title = ${source.title}, source_publisher = ${source.publisher},
+      source_published_at = ${source.publishedAt || null}::timestamptz, source_text = ${source.text},
+      supporting_sources = ${JSON.stringify(generated.sources)}::jsonb,
+      generated_title = ${generated.title}, generated_summary = ${generated.summary},
+      generated_content = ${generated.markdown}, warnings = ${JSON.stringify(generated.warnings)}::jsonb,
+      model = ${generated.model}, response_id = ${generated.responseId},
+      input_tokens = ${generated.inputTokens ?? null}, output_tokens = ${generated.outputTokens ?? null},
+      error_message = NULL, updated_at = NOW()
+    WHERE id = ${id}
+  `;
+}
+
+export async function saveFailedDraft(id: string, message: string) {
+  const sql = getDatabaseSql();
+  await sql`
+    UPDATE ai_article_drafts SET status = 'failed', error_message = ${message.slice(0, 500)}, updated_at = NOW()
+    WHERE id = ${id}
+  `;
+}
+
+export async function getNewsDraft(id: string) {
+  const sql = getDatabaseSql();
+  const rows = (await sql`
+    SELECT id, status, source_url, source_title, source_publisher,
+      source_published_at::text, supporting_sources, generated_title,
+      generated_summary, generated_content, warnings, model,
+      error_message, published_post_slug
+    FROM ai_article_drafts WHERE id = ${id} LIMIT 1
+  `) as DraftRecord[];
+  return rows[0] ? mapDraft(rows[0]) : undefined;
+}
+
+export async function getRecentNewsDrafts() {
+  const sql = getDatabaseSql();
+  const rows = (await sql`
+    SELECT id, status, source_url, source_title, source_publisher,
+      source_published_at::text, supporting_sources, generated_title,
+      generated_summary, generated_content, warnings, model,
+      error_message, published_post_slug
+    FROM ai_article_drafts ORDER BY created_at DESC LIMIT 20
+  `) as DraftRecord[];
+  return rows.map(mapDraft);
+}
+
+export async function markDraftPublished(id: string, slug: string) {
+  const sql = getDatabaseSql();
+  await sql`
+    UPDATE ai_article_drafts SET status = 'published', published_post_slug = ${slug}, updated_at = NOW()
+    WHERE id = ${id} AND status = 'ready'
+  `;
+}
