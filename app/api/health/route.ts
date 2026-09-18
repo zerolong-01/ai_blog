@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
 
-import { getAllReviewMetaWithStatus } from "@/lib/reviews";
+import { checkPostDatabase } from "@/lib/posts-db";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const { storage } = await getAllReviewMetaWithStatus();
-  const healthy = storage.mode === "database" && !storage.error;
+  let healthy = false;
+  let postCount = 0;
+  try { postCount = await checkPostDatabase(); healthy = true; } catch {}
+
 
   return NextResponse.json(
     {
       status: healthy ? "ok" : "degraded",
-      storage: storage.mode,
-      postCount: storage.postCount ?? 0,
+      storage: healthy ? "database" : "unavailable",
+      postCount,
       checkedAt: new Date().toISOString()
     },
     {

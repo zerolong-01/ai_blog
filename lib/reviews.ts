@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+import { normalizePostQuery, normalizePostPage, postPageCount, POSTS_PER_PAGE } from "@/lib/post-pagination";
 import { ToolReview, ToolReviewMeta } from "@/lib/types";
 import { getBundledReviewBySlug, getBundledReviewMeta } from "@/lib/reviews-fallback";
 import {
@@ -5,6 +7,7 @@ import {
   getDatabaseStorageStatus,
   getPostRecordBySlug,
   getPostRecords,
+  getPostPage,
   insertPost,
   updatePost,
   toReview,
@@ -56,10 +59,27 @@ export function getReviewStorageStatus(): ReviewStorageStatus {
   };
 }
 
+const getCachedMeta = unstable_cache(async () => (await getPostRecords()).map(toReviewMeta), ["post-meta-v2"], { revalidate: 300, tags: ["posts"] });
+const getCachedPage = unstable_cache(getPostPage, ["post-page-v1"], { revalidate: 300, tags: ["posts"] });
+
+export async function getReviewPage(rawPage?: string, rawQuery?: string) {
+  const page = normalizePostPage(rawPage);
+  const query = normalizePostQuery(rawQuery);
+  try { return await getCachedPage(page, query); }
+  catch (error) {
+    reportStorageFailure("getReviewPage", error);
+    const posts = (await getBundledReviewMeta()).filter((post) =>
+      [post.name, post.tagline, post.summary, post.category, post.bestFor.join(" "), post.features.join(" ")].join(" ").toLowerCase().includes(query.toLowerCase())
+    ).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.slug.localeCompare(a.slug));
+    const pageCount = postPageCount(posts.length);
+    const currentPage = Math.min(page, pageCount);
+    return { posts: posts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE), total: posts.length, page: currentPage, pageCount };
+  }
+}
+
 export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {
   try {
-    const records = await getPostRecords();
-    return records.map(toReviewMeta).map((review) => ({ ...review }));
+    return await getCachedMeta();
   } catch (error) {
     reportStorageFailure("getAllReviewMeta", error);
     const fallbackReviews = await getBundledReviewMeta();
