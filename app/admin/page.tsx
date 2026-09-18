@@ -6,7 +6,6 @@ import { deletePostAction, logoutAdminAction } from "@/app/admin/actions";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { getAdminConfigError, isAdminAuthenticated } from "@/lib/admin-auth";
 import { getAllReviewMetaWithStatus } from "@/lib/reviews";
-import { getRecentNewsDrafts } from "@/lib/news-drafts";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
 
@@ -41,7 +40,7 @@ export default async function AdminPage() {
     );
   }
 
-  const [{ posts, storage }, drafts] = await Promise.all([getAllReviewMetaWithStatus(), getRecentNewsDrafts().catch(() => [])]);
+  const { posts, storage } = await getAllReviewMetaWithStatus();
 
   return (
     <section className="container pageShell adminShell">
@@ -57,9 +56,6 @@ export default async function AdminPage() {
         </Link>
         <Link href="/tools/write" className="primaryButton">
           Write post
-        </Link>
-        <Link href={"/tools/write/from-news" as Route} className="secondaryButton">
-          Generate from news
         </Link>
         <form action={logoutAdminAction}>
           <button type="submit" className="secondaryButton">
@@ -77,22 +73,6 @@ export default async function AdminPage() {
         </span>
         {storage.error ? <code>{storage.error}</code> : null}
       </div>
-
-      {drafts.length > 0 ? (
-        <section className="adminDraftSection" aria-labelledby="drafts-heading">
-          <div className="sectionHeading"><div><span className="eyebrow">AI-assisted editorial</span><h2 id="drafts-heading">Recent drafts</h2></div></div>
-          <div className="adminList">
-            {drafts.map((draft) => (
-              <article key={draft.id} className="adminCard">
-                <div className="adminCardBody"><div className="adminMeta"><span>{draft.status}</span><span>{draft.sourcePublisher}</span></div><h3>{draft.generatedTitle || draft.sourceTitle || draft.sourceUrl}</h3></div>
-                <div className="adminActions">
-                  {draft.status === "published" && draft.publishedPostSlug ? <Link href={`/tools/${draft.publishedPostSlug}`} className="secondaryButton">View post</Link> : <Link href={`/tools/write/from-news/${draft.id}` as Route} className="secondaryButton">Review</Link>}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <div className="adminList">
         {posts.map((post) => (
