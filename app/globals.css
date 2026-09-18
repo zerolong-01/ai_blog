@@ -86,7 +86,7 @@
   .minimalHero { position: relative; min-height: calc(100svh - 76px); overflow: hidden; border-bottom: 1px solid var(--border); }
   .minimalHero::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .45; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 64px 64px; mask-image: linear-gradient(to bottom, black, transparent 85%); }
   .minimalHeroGrid { position: relative; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); gap: clamp(2rem, 6vw, 6rem); padding: 6rem 0; }
-  .eyebrow, .categoryCount, .feedMeta, .rating, .pill, .adLabel { font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
+  .eyebrow, .categoryCount, .feedMeta, .rating, .pill { font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
   .eyebrow { color: var(--accent); font-weight: 700; }
   .statusDot { display: inline-block; width: 7px; height: 7px; margin-right: .5rem; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 5px color-mix(in srgb, var(--cyan) 15%, transparent), 0 0 18px var(--cyan); }
   .gradientText { display: block; color: transparent; background: linear-gradient(100deg, var(--accent), var(--art) 58%, var(--cyan)); background-clip: text; -webkit-background-clip: text; }
@@ -100,22 +100,6 @@
   .visualLabel { top: 1.35rem; }
   .visualLabel strong { color: var(--cyan); }
   .visualFooter { bottom: 1.35rem; }
-  .artFlower { position: absolute; z-index: 2; top: 50%; left: 50%; display: grid; place-items: center; width: 190px; height: 190px; border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent), transparent 62%); transform: translate(-50%, -50%); animation: ai-spin 20s linear infinite; }
-  .artFlower::before, .artFlower::after { content: ""; position: absolute; border: 1px solid var(--border); border-radius: 50%; }
-  .artFlower::before { inset: -48px; }
-  .artFlower::after { inset: 45px; background: var(--accent); box-shadow: 0 0 50px color-mix(in srgb, var(--accent) 45%, transparent); }
-  .artFlower span { position: absolute; z-index: 2; font: .65rem var(--mono); color: var(--text); }
-  .artFlower span:nth-child(1) { top: -4px; }
-  .artFlower span:nth-child(2) { color: white; font-size: .8rem; font-weight: 800; }
-  .artFlower span:nth-child(3) { bottom: -4px; }
-  .artBox { position: absolute; inset: 0; background: none; }
-  .artBox i { position: absolute; width: 8px; height: 8px; border: 1px solid var(--accent); border-radius: 50%; background: var(--surface-strong); }
-  .artBox i:nth-child(1) { left: 15%; top: 28%; } .artBox i:nth-child(2) { right: 18%; top: 22%; } .artBox i:nth-child(3) { left: 22%; bottom: 21%; } .artBox i:nth-child(4) { right: 13%; bottom: 29%; } .artBox i:nth-child(5) { left: 10%; top: 60%; } .artBox i:nth-child(6) { right: 34%; top: 12%; }
-  .artLine { z-index: 1; border-color: color-mix(in srgb, var(--accent) 38%, transparent); }
-  .artLineOne { top: 31%; right: 8%; width: 78%; transform: rotate(153deg); }
-  .artLineTwo { left: 10%; bottom: 29%; width: 74%; transform: rotate(-35deg); }
-  .artDot { z-index: 3; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
-  @keyframes ai-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
   .homeSection { padding: 5rem 0; }
   .sectionHeading { align-items: end; margin-bottom: 2rem !important; }
@@ -151,10 +135,8 @@
   .siteFooter { padding: 2.5rem 0; background: color-mix(in srgb, var(--surface) 45%, transparent); }
   .footerBar strong { color: var(--text); }
   .footerInlineLinks { font-family: var(--mono); text-transform: uppercase; letter-spacing: .04em; }
-
-  @media (prefers-reduced-motion: reduce) { .artFlower { animation: none; } }
   @media (max-width: 960px) { .minimalHeroGrid { grid-template-columns: 1fr; } .minimalArtwork { height: 380px; } .cardGrid, .categoryGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { h1 { font-size: clamp(3rem, 16vw, 4.5rem); } .minimalHeroGrid { padding: 4rem 0 3rem; } .minimalArtwork { height: 300px; } .artFlower { width: 120px; height: 120px; } .cardGrid, .categoryGrid { grid-template-columns: 1fr; } .toolCard { min-height: 250px; } .feedCard { padding: 1.5rem; } }
+  @media (max-width: 640px) { h1 { font-size: clamp(3rem, 16vw, 4.5rem); } .minimalHeroGrid { padding: 4rem 0 3rem; } .minimalArtwork { height: 300px; } .cardGrid, .categoryGrid { grid-template-columns: 1fr; } .toolCard { min-height: 250px; } .feedCard { padding: 1.5rem; } }
 }
 
 @layer legacy {
@@ -379,19 +361,6 @@ main {
   justify-content: center;
 }
 
-.heroGrid,
-.dualGrid,
-.footerGrid,
-.reviewLayout {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.heroGrid {
-  grid-template-columns: 1.4fr 0.9fr;
-  align-items: start;
-}
-
 .minimalHeroGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 440px;
@@ -442,37 +411,17 @@ h3 {
   max-width: 34ch;
 }
 
-.heroPanel,
 .toolCard,
-.categoryCard,
-.contentCard,
-.scoreCard,
-.adPlaceholder,
-.adFrame {
+.categoryCard {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 
-.heroPanel,
-.contentCard,
-.scoreCard,
-.adPlaceholder,
-.adFrame {
-  padding: 1.4rem;
-}
-
-.heroPanel ul,
-.simpleList {
-  margin: 0;
-  padding-left: 1.2rem;
-}
-
 .ctaRow,
 .sectionHeading,
-.toolCardTop,
-.metaRow {
+.toolCardTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -484,16 +433,12 @@ h3 {
   margin-top: 1.5rem;
 }
 
-.inlineLinks,
-.compactLinks,
 .footerInlineLinks {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1.1rem;
 }
 
-.inlineLinks span,
-.compactLinks a,
 .footerInlineLinks a {
   color: var(--muted);
   font-size: 0.98rem;
@@ -504,75 +449,6 @@ h3 {
   height: 520px;
 }
 
-.artFlower {
-  position: absolute;
-  top: 2rem;
-  left: 6rem;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 0%, var(--art) 0 28%, transparent 29%),
-    radial-gradient(circle at 100% 50%, var(--art) 0 28%, transparent 29%),
-    radial-gradient(circle at 50% 100%, var(--art) 0 28%, transparent 29%),
-    radial-gradient(circle at 0% 50%, var(--art) 0 28%, transparent 29%),
-    radial-gradient(circle at 50% 50%, var(--art) 0 14%, transparent 15%);
-  transform: rotate(20deg);
-}
-
-.artBox {
-  position: absolute;
-  right: 0;
-  bottom: 3rem;
-  width: 260px;
-  height: 180px;
-  background: var(--art);
-}
-
-.artLine {
-  position: absolute;
-  border-top: 2px solid color-mix(in srgb, var(--text) 64%, transparent);
-  transform-origin: left center;
-}
-
-.artLineOne {
-  top: 10rem;
-  right: 2rem;
-  width: 220px;
-  transform: rotate(34deg);
-}
-
-.artLineTwo {
-  left: 0;
-  bottom: 5rem;
-  width: 320px;
-  transform: rotate(13deg);
-}
-
-.artDot {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text);
-}
-
-.artDotOne {
-  right: 5rem;
-  top: 12rem;
-}
-
-.artDotTwo {
-  left: 8rem;
-  bottom: 8rem;
-}
-
-.artDotThree {
-  right: 9rem;
-  bottom: 6rem;
-}
-
-.sectionSpacing,
 .pageShell {
   padding: 1rem 0 3rem;
 }
@@ -690,7 +566,6 @@ h3 {
   color: var(--bg);
 }
 
-.feedMain,
 .writeMain {
   min-width: 0;
 }
@@ -705,36 +580,27 @@ h3 {
   max-width: 980px;
 }
 
-.feedCard,
-.editorCard {
+.feedCard {
   padding: 1.75rem 0;
   border-bottom: 1px solid var(--border);
   text-align: center;
 }
 
-.feedCard:first-child,
-.editorCard {
+.feedCard:first-child {
   padding-top: 0;
 }
 
-.feedMeta,
-.feedFooter,
-.archiveLink {
+.feedMeta {
   display: flex;
   align-items: center;
   gap: 0.9rem;
 }
 
-.feedMeta,
-.feedFooter,
-.archiveLink span,
-.editorTopline,
-.editorLead {
+.feedMeta {
   color: var(--muted);
 }
 
-.feedMeta,
-.editorTopline {
+.feedMeta {
   font-size: 0.92rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -762,10 +628,6 @@ h3 {
 .feedSummary {
   max-width: 78ch;
   margin-inline: auto;
-}
-
-.feedFooter {
-  justify-content: space-between;
 }
 
 .editorForm {
@@ -1119,13 +981,10 @@ h3 {
 }
 
 .toolCardTop,
-.metaRow,
 .tagline,
 .rating,
 .pill,
-.searchCount,
-.detailList dt,
-.adLabel {
+.searchCount {
   color: var(--muted);
 }
 
@@ -1162,15 +1021,6 @@ h3 {
 .draftWarnings ul {
   margin-bottom: 0;
   padding-left: 1.2rem;
-}
-
-.adminDraftSection {
-  max-width: 900px;
-  margin: 0 auto 3rem;
-}
-
-.adminDraftSection .sectionHeading {
-  margin-bottom: 1rem;
 }
 
 .draftThemeNotice {
@@ -1249,12 +1099,6 @@ h3 {
   text-align: center;
 }
 
-.footerLinks {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
 .siteFooter {
   border-top: 1px solid var(--border);
   padding: 1rem 0 1.5rem;
@@ -1273,24 +1117,7 @@ h3 {
   font-size: 0.95rem;
 }
 
-.adPlaceholder,
-.adFrame {
-  min-height: 140px;
-  display: grid;
-  place-items: center;
-  text-align: center;
-}
-
-.adLabel {
-  display: block;
-  margin-bottom: 0.4rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.8rem;
-}
-
 @media (max-width: 960px) {
-  .heroGrid,
   .cardGrid,
   .categoryGrid {
     grid-template-columns: 1fr;
@@ -1405,8 +1232,7 @@ h3 {
     flex-wrap: wrap;
   }
 
-  .feedMeta,
-  .feedFooter {
+  .feedMeta {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -1446,17 +1272,6 @@ h3 {
 
   .minimalArtwork {
     height: 260px;
-  }
-
-  .artFlower {
-    left: 1rem;
-    width: 120px;
-    height: 120px;
-  }
-
-  .artBox {
-    width: 180px;
-    height: 120px;
   }
 
 }

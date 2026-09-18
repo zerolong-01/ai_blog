@@ -14,7 +14,6 @@ type LoginAttemptRow = {
 };
 
 const memoryAttempts = new Map<string, LoginAttempt>();
-let tablePromise: Promise<void> | null = null;
 
 function getConnectionString() {
   return process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim() || null;
@@ -27,20 +26,7 @@ async function getRateLimitSql() {
     return null;
   }
 
-  const sql = neon(connectionString);
-
-  if (!tablePromise) {
-    tablePromise = Promise.resolve();
-  }
-
-  try {
-    await tablePromise;
-  } catch (error) {
-    tablePromise = null;
-    throw error;
-  }
-
-  return sql;
+  return neon(connectionString);
 }
 
 function reportRateLimitFallback(error: unknown) {

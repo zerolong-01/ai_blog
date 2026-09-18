@@ -1,5 +1,5 @@
 import { ToolReview, ToolReviewMeta } from "@/lib/types";
-import { getBundledReviewBySlug, getBundledReviewMeta, getBundledReviews } from "@/lib/reviews-fallback";
+import { getBundledReviewBySlug, getBundledReviewMeta } from "@/lib/reviews-fallback";
 import {
   deletePost,
   getDatabaseStorageStatus,
@@ -67,16 +67,6 @@ export function getReviewStorageStatus(): ReviewStorageStatus {
     mode: storage.mode,
     target: storage.target
   };
-}
-
-export async function getAllReviews() {
-  try {
-    const records = await getPostRecords();
-    return records.map(toReview);
-  } catch (error) {
-    reportStorageFailure("getAllReviews", error);
-    return getBundledReviews();
-  }
 }
 
 export async function getAllReviewMeta(): Promise<ToolReviewMeta[]> {

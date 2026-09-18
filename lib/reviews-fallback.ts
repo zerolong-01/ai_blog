@@ -94,7 +94,7 @@ async function readBundledReviewFile(filename: string) {
   return toToolReview(slug, data as ReviewFrontmatter, content.trim());
 }
 
-export async function getBundledReviews() {
+async function getBundledReviews() {
   const filenames = await listBundledReviewFiles();
   const reviews = await Promise.all(filenames.map(readBundledReviewFile));
 

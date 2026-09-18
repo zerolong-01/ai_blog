@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { getDatabaseSql } from "@/lib/database";
 
-export type DraftStatus = "generating" | "ready" | "failed" | "published";
+type DraftStatus = "generating" | "ready" | "failed" | "published";
 
 export type DraftSource = {
   title: string;
@@ -92,7 +92,7 @@ async function initializeNewsDraftSchema() {
   await sql`SELECT suggested_series_name, suggested_series_order FROM ai_article_drafts LIMIT 0`;
 }
 
-export async function ensureNewsDraftsDatabase() {
+async function ensureNewsDraftsDatabase() {
   if (!schemaPromise) schemaPromise = initializeNewsDraftSchema();
   try {
     await schemaPromise;
@@ -205,19 +205,6 @@ export async function getNewsDraft(id: string) {
     FROM ai_article_drafts WHERE id = ${id} LIMIT 1
   `) as DraftRecord[];
   return rows[0] ? mapDraft(rows[0]) : undefined;
-}
-
-export async function getRecentNewsDrafts() {
-  await ensureNewsDraftsDatabase();
-  const sql = getDatabaseSql();
-  const rows = (await sql`
-    SELECT id, status, source_url, source_title, source_publisher,
-      source_published_at::text, supporting_sources, generated_title,
-      generated_summary, generated_content, warnings, model, suggested_series_name, suggested_series_order,
-      error_message, published_post_slug
-    FROM ai_article_drafts ORDER BY created_at DESC LIMIT 20
-  `) as DraftRecord[];
-  return rows.map(mapDraft);
 }
 
 export async function markDraftPublished(id: string, slug: string) {

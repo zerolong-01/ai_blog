@@ -182,7 +182,7 @@ async function initializeDatabase() {
   initialized = true;
 }
 
-export async function ensurePostsDatabase() {
+async function ensurePostsDatabase() {
   if (!initializationPromise) {
     initializationPromise = initializeDatabase();
   }
