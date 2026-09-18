@@ -1397,13 +1397,13 @@ h3 {
 }
 
 @layer ai-theme {
-  .reviewShell {
+  .postPageBackground {
     position: relative;
     isolation: isolate;
   }
 
-  .reviewShell::before,
-  .reviewShell::after {
+  .postPageBackground::before,
+  .postPageBackground::after {
     content: "";
     position: absolute;
     z-index: -1;
@@ -1414,13 +1414,13 @@ h3 {
     pointer-events: none;
   }
 
-  .reviewShell::before {
+  .postPageBackground::before {
     background:
       radial-gradient(ellipse at 18% 12%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 52%),
       radial-gradient(ellipse at 86% 28%, color-mix(in srgb, var(--cyan) 9%, transparent), transparent 48%);
   }
 
-  .reviewShell::after {
+  .postPageBackground::after {
     background-image:
       linear-gradient(color-mix(in srgb, var(--border) 40%, transparent) 1px, transparent 1px),
       linear-gradient(90deg, color-mix(in srgb, var(--border) 40%, transparent) 1px, transparent 1px);
@@ -1441,7 +1441,7 @@ h3 {
   }
 
   @media (max-width: 640px) {
-    .reviewShell::after { background-size: 32px 32px; }
+    .postPageBackground::after { background-size: 32px 32px; }
     .reviewShell .postBody { padding: 1.5rem; }
   }
 }

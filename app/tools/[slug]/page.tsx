@@ -128,108 +128,110 @@ export default async function ToolPage({ params }: ToolPageProps) {
   };
 
   return (
-    <article className="container reviewShell">
-      <script
-        nonce={nonce}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }}
-      />
-      <header className="reviewHeader reviewHeaderSimple">
-        <div>
-          <span className="eyebrow">AI blog</span>
-          <h1>{tool.name}</h1>
-          <p className="postDate">
-            By {tool.author} · Published {formatDate(tool.publishedAt)}
-            {tool.updatedAt !== tool.publishedAt ? ` · Updated ${formatDate(tool.updatedAt)}` : ""}
-          </p>
-          {tool.seriesName ? (
-            <p className="seriesKicker">
-              <span>{tool.seriesName}</span>
-              {tool.seriesOrder ? ` · Part ${tool.seriesOrder}` : ""}
+    <div className="postPageBackground">
+      <article className="container reviewShell">
+        <script
+          nonce={nonce}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }}
+        />
+        <header className="reviewHeader reviewHeaderSimple">
+          <div>
+            <span className="eyebrow">AI blog</span>
+            <h1>{tool.name}</h1>
+            <p className="postDate">
+              By {tool.author} · Published {formatDate(tool.publishedAt)}
+              {tool.updatedAt !== tool.publishedAt ? ` · Updated ${formatDate(tool.updatedAt)}` : ""}
             </p>
+            {tool.seriesName ? (
+              <p className="seriesKicker">
+                <span>{tool.seriesName}</span>
+                {tool.seriesOrder ? ` · Part ${tool.seriesOrder}` : ""}
+              </p>
+            ) : null}
+          </div>
+        </header>
+
+        <div className="postBody proseReview">
+          <div dangerouslySetInnerHTML={{ __html: reviewContent }} />
+        </div>
+
+        <footer className="postDiscovery">
+          {seriesPosts.length > 0 ? (
+            <nav className="seriesNavigation" aria-labelledby="series-heading">
+              <div className="seriesNavigationHeader">
+                <span className="eyebrow">Continue the series</span>
+                <h2 id="series-heading">{tool.seriesName}</h2>
+              </div>
+              <ol>
+                {seriesPosts.map((post) => {
+                  const isCurrent = post.slug === tool.slug;
+
+                  return (
+                    <li key={post.slug} className={isCurrent ? "seriesCurrent" : undefined}>
+                      <span>Part {post.seriesOrder}</span>
+                      {isCurrent ? (
+                        <strong aria-current="page">{post.name}</strong>
+                      ) : (
+                        <Link href={`/tools/${post.slug}`}>{post.name}</Link>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
           ) : null}
-        </div>
-      </header>
 
-      <div className="postBody proseReview">
-        <div dangerouslySetInnerHTML={{ __html: reviewContent }} />
-      </div>
+          {(newerPost || olderPost) && (
+            <nav className="postPagination" aria-label="More posts">
+              <div>
+                {newerPost ? (
+                  <>
+                    <span>Newer post</span>
+                    <Link href={`/tools/${newerPost.slug}`}>{newerPost.name}</Link>
+                  </>
+                ) : null}
+              </div>
+              <div className="postPaginationOlder">
+                {olderPost ? (
+                  <>
+                    <span>Older post</span>
+                    <Link href={`/tools/${olderPost.slug}`}>{olderPost.name}</Link>
+                  </>
+                ) : null}
+              </div>
+            </nav>
+          )}
 
-      <footer className="postDiscovery">
-        {seriesPosts.length > 0 ? (
-          <nav className="seriesNavigation" aria-labelledby="series-heading">
-            <div className="seriesNavigationHeader">
-              <span className="eyebrow">Continue the series</span>
-              <h2 id="series-heading">{tool.seriesName}</h2>
-            </div>
-            <ol>
-              {seriesPosts.map((post) => {
-                const isCurrent = post.slug === tool.slug;
+          {relatedPosts.length > 0 ? (
+            <section className="relatedPosts" aria-labelledby="related-posts-heading">
+              <div className="sectionHeading">
+                <h2 id="related-posts-heading">Related posts</h2>
+                {tool.seriesName ? (
+                  <Link href={`/series/${encodeURIComponent(tool.seriesName)}`} className="textLink">
+                    View full series
+                  </Link>
+                ) : (
+                  <Link href={`/categories/${tool.category}`} className="textLink">
+                    More in {tool.category}
+                  </Link>
+                )}
+              </div>
+              <div className="cardGrid">
+                {relatedPosts.map((post) => (
+                  <ToolCard key={post.slug} tool={post} />
+                ))}
+              </div>
+            </section>
+          ) : null}
 
-                return (
-                  <li key={post.slug} className={isCurrent ? "seriesCurrent" : undefined}>
-                    <span>Part {post.seriesOrder}</span>
-                    {isCurrent ? (
-                      <strong aria-current="page">{post.name}</strong>
-                    ) : (
-                      <Link href={`/tools/${post.slug}`}>{post.name}</Link>
-                    )}
-                  </li>
-                );
-              })}
-            </ol>
-          </nav>
-        ) : null}
-
-        {(newerPost || olderPost) && (
-          <nav className="postPagination" aria-label="More posts">
-            <div>
-              {newerPost ? (
-                <>
-                  <span>Newer post</span>
-                  <Link href={`/tools/${newerPost.slug}`}>{newerPost.name}</Link>
-                </>
-              ) : null}
-            </div>
-            <div className="postPaginationOlder">
-              {olderPost ? (
-                <>
-                  <span>Older post</span>
-                  <Link href={`/tools/${olderPost.slug}`}>{olderPost.name}</Link>
-                </>
-              ) : null}
-            </div>
-          </nav>
-        )}
-
-        {relatedPosts.length > 0 ? (
-          <section className="relatedPosts" aria-labelledby="related-posts-heading">
-            <div className="sectionHeading">
-              <h2 id="related-posts-heading">Related posts</h2>
-              {tool.seriesName ? (
-                <Link href={`/series/${encodeURIComponent(tool.seriesName)}`} className="textLink">
-                  View full series
-                </Link>
-              ) : (
-                <Link href={`/categories/${tool.category}`} className="textLink">
-                  More in {tool.category}
-                </Link>
-              )}
-            </div>
-            <div className="cardGrid">
-              {relatedPosts.map((post) => (
-                <ToolCard key={post.slug} tool={post} />
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        <div className="postBackLink">
-          <Link href="/tools" className="textLink">
-            Back to all posts
-          </Link>
-        </div>
-      </footer>
-    </article>
+          <div className="postBackLink">
+            <Link href="/tools" className="textLink">
+              Back to all posts
+            </Link>
+          </div>
+        </footer>
+      </article>
+    </div>
   );
 }
