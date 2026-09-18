@@ -38,6 +38,7 @@ export default async function WriteReviewPage() {
         <Link href={"/tools/write/from-news" as Route} className="feedTab">
           Generate from news
         </Link>
+        <Link href={"/tools/write/from-conversation" as Route} className="feedTab">대화 내용 바로 게시</Link>
       </div>
 
       <div className="writeMain writeMainSolo">

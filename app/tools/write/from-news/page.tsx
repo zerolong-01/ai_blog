@@ -17,6 +17,7 @@ export default async function FromNewsPage() {
       <div className="feedTabs" role="navigation" aria-label="Editor tabs">
         <Link href="/tools/write" className="feedTab">Write manually</Link>
         <Link href={"/tools/write/from-news" as Route} className="feedTab feedTabActive">Generate from news</Link>
+        <Link href={"/tools/write/from-conversation" as Route} className="feedTab">대화 내용 바로 게시</Link>
       </div>
       <div className="writeMain writeMainSolo">
         <div className="pageIntro"><span className="eyebrow">AI-assisted editorial</span><h1>Turn news into analysis</h1><p>Provide one source article. Stacked AI will verify context, write an English analysis, and save it as a private draft.</p></div>
