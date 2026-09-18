@@ -9,8 +9,10 @@
     "start": "next start",
     "lint": "eslint .",
     "migrate": "node scripts/migrate.mjs",
-    "test": "node --test --experimental-strip-types lib/*.test.mts",
-    "typecheck": "tsc --noEmit"
+    "test": "node --test --experimental-strip-types lib/*.test.mts scripts/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "monitor": "node scripts/monitor.mjs",
+    "backup": "node scripts/backup.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

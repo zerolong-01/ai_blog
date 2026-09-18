@@ -6,6 +6,7 @@ import { deletePostAction, logoutAdminAction } from "@/app/admin/actions";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { getAdminConfigError, isAdminAuthenticated } from "@/lib/admin-auth";
 import { getAllReviewMetaWithStatus } from "@/lib/reviews";
+import { getDatabaseMetrics } from "@/lib/database-metrics";
 import { absoluteUrl } from "@/lib/site";
 import { formatDate } from "@/lib/utils";
 
@@ -41,6 +42,7 @@ export default async function AdminPage() {
   }
 
   const { posts, storage } = await getAllReviewMetaWithStatus();
+  const metrics = await getDatabaseMetrics().catch(() => null);
 
   return (
     <section className="container pageShell adminShell">
@@ -75,6 +77,12 @@ export default async function AdminPage() {
         {storage.error ? <code>{storage.error}</code> : null}
       </div>
 
+      <div className="storageNotice" role="status">
+        <strong>데이터베이스 용량</strong>
+        {metrics ? <span>테이블·인덱스 사용량: {(metrics.bytes / 1024 / 1024).toFixed(2)} MB{metrics.percent !== null ? ` · 설정한 한도의 ${metrics.percent.toFixed(1)}%` : " · 용량 한도 미설정"}</span> : <span>용량 정보를 확인하지 못했습니다.</span>}
+        {metrics?.percent !== null && metrics && metrics.percent >= 80 ? <strong>용량이 설정한 한도의 80% 이상입니다. 사용량을 확인해 주세요.</strong> : null}
+        <span>Neon 계정 전체 사용량은 다른 브랜치·프로젝트를 포함하므로 콘솔에서도 확인해 주세요.</span>
+      </div>
       <div className="adminList">
         {posts.map((post) => (
           <article key={post.slug} className="adminCard">
