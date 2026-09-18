@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { requireAdminAuth } from "@/lib/admin-auth";
 import { logAdminEvent } from "@/lib/admin-audit";
@@ -11,6 +10,7 @@ import { createReviewFile, updateReviewFile } from "@/lib/reviews";
 
 export type ReviewFormState = {
   error: string | null;
+  redirectTo?: `/tools/${string}`;
 };
 
 const initialState: ReviewFormState = {
@@ -119,7 +119,7 @@ export async function createReviewAction(
   }
   await logAdminEvent("post_created", { target: slug, outcome: "success" });
 
-  redirect(`/tools/${slug}`);
+  return { error: null, redirectTo: `/tools/${slug}` };
 }
 
 export async function updateReviewAction(
@@ -178,5 +178,5 @@ export async function updateReviewAction(
 
   revalidatePostPaths(updatedSlug);
   await logAdminEvent("post_updated", { target: updatedSlug, outcome: "success" });
-  redirect(`/tools/${updatedSlug}`);
+  return { error: null, redirectTo: `/tools/${updatedSlug}` };
 }
