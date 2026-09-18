@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ToolCard } from "@/components/tool-card";
+import { SecurityArtwork } from "@/components/security-artwork";
 import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "AI Blog",
-  description: "Thoughtful writing about AI tools, workflows, trends, and the broader ideas shaping how people use AI.",
+  title: "AI & Cybersecurity Blog",
+  description: "Clear analysis of AI tools, cybersecurity threats, data protection, and the ideas shaping a safer digital world.",
   alternates: {
     canonical: absoluteUrl("/")
   }
@@ -39,10 +40,10 @@ export default async function HomePage() {
       <section className="minimalHero">
         <div className="container minimalHeroGrid">
           <div className="minimalHeroCopy">
-            <span className="eyebrow"><span className="statusDot" /> Independent AI intelligence</span>
-            <h1>Understand what&apos;s <span className="gradientText">next in AI.</span></h1>
+            <span className="eyebrow"><span className="statusDot" /> Independent AI &amp; security insights</span>
+            <h1>Explore <span className="gradientText">AI &amp; cybersecurity.</span></h1>
             <p className="heroCopy">
-              Clear analysis of the models, tools, and workflows moving artificial intelligence from research into the real world.
+              Clear analysis of AI models and tools, emerging cyber threats, and practical ways to protect data and digital systems.
             </p>
             <div className="ctaRow">
               <Link href="#latest-posts" className="primaryButton">
@@ -54,24 +55,14 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="minimalArtwork" aria-hidden="true">
-            <div className="visualLabel"><span>AI SIGNAL</span><strong>LIVE</strong></div>
-            <div className="artFlower"><span>01</span><span>AI</span><span>∞</span></div>
-            <div className="artBox"><i /><i /><i /><i /><i /><i /></div>
-            <div className="artLine artLineOne" />
-            <div className="artLine artLineTwo" />
-            <div className="artDot artDotOne" />
-            <div className="artDot artDotTwo" />
-            <div className="artDot artDotThree" />
-            <div className="visualFooter"><span>MODEL / DATA / SYSTEM</span><span>2026</span></div>
-          </div>
+          <SecurityArtwork />
         </div>
       </section>
 
       <section id="latest-posts" className="container homeSection" aria-labelledby="latest-posts-heading">
         <div className="sectionHeading">
           <div>
-            <span className="eyebrow">Fresh from the blog</span>
+            <span className="eyebrow">The latest in AI &amp; security</span>
             <h2 id="latest-posts-heading">Latest posts</h2>
           </div>
           <Link href="/tools" className="textLink">
