@@ -1,10 +1,7 @@
+import { POSTS_PER_PAGE, postPageCount } from "@/lib/post-pagination";
 import { getDatabaseSql } from "@/lib/database";
 import { siteConfig } from "@/lib/site";
 import { ToolCategory, ToolReview, ToolReviewMeta } from "@/lib/types";
-
-type CountRow = {
-  count: string | number;
-};
 
 type PostRecord = {
   slug: string;
@@ -21,7 +18,7 @@ type PostRecord = {
   features: unknown;
   verdict: string;
   author: string;
-  content: string;
+  content?: string;
   series_name: string | null;
   series_order: string | number | null;
   created_at: string;
@@ -99,15 +96,15 @@ function mapRecordToReview(record: PostRecord): ToolReview {
     updatedAt,
     seriesName: record.series_name || undefined,
     seriesOrder: record.series_order == null ? undefined : Number(record.series_order),
-    content: record.content
+    content: record.content || ""
   };
 }
 
-async function upsertPost(review: ToolReview) {
+async function createPost(review: ToolReview) {
   const sql = getSql();
   const normalizedUpdatedAt = toDateOnly(review.updatedAt);
 
-  await sql`
+  const rows = await sql`
     INSERT INTO posts (
       slug,
       name,
@@ -149,25 +146,10 @@ async function upsertPost(review: ToolReview) {
       ${toDateOnly(review.publishedAt)}::date,
       ${normalizedUpdatedAt}::date
     )
-    ON CONFLICT (slug) DO UPDATE SET
-      name = EXCLUDED.name,
-      tagline = EXCLUDED.tagline,
-      category = EXCLUDED.category,
-      website = EXCLUDED.website,
-      price = EXCLUDED.price,
-      rating = EXCLUDED.rating,
-      summary = EXCLUDED.summary,
-      best_for = EXCLUDED.best_for,
-      pros = EXCLUDED.pros,
-      cons = EXCLUDED.cons,
-      features = EXCLUDED.features,
-      verdict = EXCLUDED.verdict,
-      author = EXCLUDED.author,
-      content = EXCLUDED.content,
-      series_name = EXCLUDED.series_name,
-      series_order = EXCLUDED.series_order,
-      updated_at = EXCLUDED.updated_at
+    ON CONFLICT (slug) DO NOTHING
+    RETURNING slug
   `;
+  return rows.length === 1;
 }
 
 async function initializeDatabase() {
@@ -182,7 +164,7 @@ async function initializeDatabase() {
   initialized = true;
 }
 
-export async function ensurePostsDatabase() {
+async function ensurePostsDatabase() {
   if (!initializationPromise) {
     initializationPromise = initializeDatabase();
   }
@@ -215,7 +197,6 @@ export async function getPostRecords() {
       features,
       verdict,
       author,
-      content,
       series_name,
       series_order,
       created_at::text,
@@ -258,22 +239,59 @@ export async function getPostRecordBySlug(slug: string) {
   return rows[0] ?? null;
 }
 
-export async function getPostCountBySlug(slug: string) {
-  await ensurePostsDatabase();
-  const sql = getSql();
-  const rows = (await sql`SELECT COUNT(*)::int AS count FROM posts WHERE slug = ${slug}`) as CountRow[];
-  return Number(rows[0]?.count || 0);
-}
-
 export async function insertPost(review: ToolReview) {
   await ensurePostsDatabase();
-  await upsertPost(review);
+  return createPost(review);
+}
+
+export async function updatePost(review: ToolReview) {
+  await ensurePostsDatabase();
+  const sql = getSql();
+  const rows = await sql`
+    WITH original AS MATERIALIZED (
+      SELECT p.* FROM posts p WHERE slug = ${review.slug} FOR UPDATE
+    ), archived AS (
+      INSERT INTO post_revisions (post_slug, action, snapshot)
+      SELECT slug, 'update', to_jsonb(original) FROM original RETURNING post_slug
+    )
+    UPDATE posts SET
+      name = ${review.name},
+      tagline = ${review.tagline},
+      category = ${review.category},
+      website = ${review.website},
+      price = ${review.price},
+      rating = ${review.rating},
+      summary = ${review.summary},
+      best_for = ${JSON.stringify(review.bestFor)}::jsonb,
+      pros = ${JSON.stringify(review.pros)}::jsonb,
+      cons = ${JSON.stringify(review.cons)}::jsonb,
+      features = ${JSON.stringify(review.features)}::jsonb,
+      verdict = ${review.verdict},
+      content = ${review.content},
+      series_name = ${review.seriesName || null},
+      series_order = ${review.seriesOrder ?? null},
+      updated_at = ${toDateOnly(review.updatedAt)}::date
+    FROM archived
+    WHERE posts.slug = archived.post_slug
+    RETURNING posts.slug
+  `;
+  if (rows.length !== 1) {
+    throw new Error(`Post not found: ${review.slug}`);
+  }
 }
 
 export async function deletePost(slug: string) {
   await ensurePostsDatabase();
   const sql = getSql();
-  const rows = (await sql`DELETE FROM posts WHERE slug = ${slug} RETURNING slug`) as Array<{ slug: string }>;
+  const rows = (await sql`
+    WITH original AS MATERIALIZED (
+      SELECT p.* FROM posts p WHERE slug = ${slug} FOR UPDATE
+    ), archived AS (
+      INSERT INTO post_revisions (post_slug, action, snapshot)
+      SELECT slug, 'delete', to_jsonb(original) FROM original RETURNING post_slug
+    )
+    DELETE FROM posts USING archived WHERE posts.slug = archived.post_slug RETURNING posts.slug
+  `) as Array<{ slug: string }>;
   return rows.length;
 }
 
@@ -294,4 +312,55 @@ export function getDatabaseStorageStatus() {
     mode: "database" as const,
     target: configured ? "Neon Postgres" : "DATABASE_URL not configured"
   };
+}
+
+export async function getPostRevisions(slug: string | null, page: number) {
+  const sql = getSql();
+  return await sql`
+    SELECT id::text, post_slug, action, snapshot->>'name' AS name, created_at::text
+    FROM post_revisions WHERE (${slug}::text IS NULL OR post_slug = ${slug})
+    ORDER BY created_at DESC, id DESC LIMIT 21 OFFSET ${(page - 1) * 20}
+  ` as Array<{ id: string; post_slug: string; action: string; name: string; created_at: string }>;
+}
+
+export async function getPostRevision(id: string) {
+  const rows = await getSql()`SELECT id::text, action, snapshot FROM post_revisions WHERE id = ${id}::bigint`;
+  if (!rows[0]) return undefined;
+  return { id: String(rows[0].id), action: String(rows[0].action), review: toReview(rows[0].snapshot as PostRecord) };
+}
+
+export async function restorePostRevision(id: string) {
+  const revision = await getPostRevision(id);
+  if (!revision) throw new Error("복원할 이력을 찾을 수 없습니다.");
+  if (revision.action === "delete") {
+    if (!await insertPost(revision.review)) throw new Error("같은 주소의 글이 이미 존재합니다. 현재 글을 덮어쓰지 않았습니다.");
+  } else {
+    await updatePost({ ...revision.review, updatedAt: new Date().toISOString().slice(0, 10) });
+  }
+  return revision.review.slug;
+}
+
+export async function getPostPage(page: number, query: string) {
+  const sql = getSql();
+  const counts = await sql`
+    SELECT COUNT(*)::int AS total FROM posts
+    WHERE ${query} = '' OR strpos(lower(concat_ws(' ', name, tagline, summary, category, best_for::text, features::text)), lower(${query})) > 0
+  `;
+  const total = Number(counts[0]?.total || 0);
+  const pageCount = postPageCount(total);
+  const currentPage = Math.min(page, pageCount);
+  const posts = await sql`
+    SELECT slug, name, tagline, category, website, price, rating, summary,
+      best_for, pros, cons, features, verdict, author, series_name, series_order,
+      created_at::text, updated_at::text
+    FROM posts
+    WHERE ${query} = '' OR strpos(lower(concat_ws(' ', name, tagline, summary, category, best_for::text, features::text)), lower(${query})) > 0
+    ORDER BY updated_at DESC, slug DESC LIMIT ${POSTS_PER_PAGE} OFFSET ${(currentPage - 1) * POSTS_PER_PAGE}
+  `;
+  return { posts: (posts as PostRecord[]).map(toReviewMeta), total, page: currentPage, pageCount };
+}
+
+export async function checkPostDatabase() {
+  const rows = await getSql()`SELECT COUNT(*)::int AS total FROM posts`;
+  return Number(rows[0]?.total || 0);
 }

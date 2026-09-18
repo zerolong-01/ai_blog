@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { getAllReviewMeta } from "@/lib/reviews";
+import { getReviewPage } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
+import { PostPagination } from "@/components/post-pagination";
 import { formatDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -16,8 +17,9 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function ToolsPage() {
-  const tools = await getAllReviewMeta();
+export default async function ToolsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const { page: rawPage } = await searchParams;
+  const { posts: tools, page, pageCount } = await getReviewPage(rawPage);
   const authenticated = await isAdminAuthenticated();
 
   return (
@@ -50,6 +52,7 @@ export default async function ToolsPage() {
           </article>
         ))}
       </div>
+      <PostPagination page={page} pageCount={pageCount} path="/tools" />
     </section>
   );
 }

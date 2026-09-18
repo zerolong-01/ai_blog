@@ -16,12 +16,13 @@ const navItems = [
 
 export function Header() {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuState, setMenuState] = useState({ pathname, open: false });
+  const menuOpen = menuState.pathname === pathname && menuState.open;
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  if (menuState.pathname !== pathname) {
+    setMenuState({ pathname, open: false });
+  }
 
   useEffect(() => {
     if (!menuOpen) {
@@ -30,14 +31,14 @@ export function Header() {
 
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setMenuOpen(false);
+        setMenuState({ pathname, open: false });
         menuButtonRef.current?.focus();
       }
     }
 
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [menuOpen]);
+  }, [menuOpen, pathname]);
 
   function isCurrentPage(href: Route) {
     if (href === "/") {
@@ -69,7 +70,7 @@ export function Header() {
           aria-expanded={menuOpen}
           aria-controls="primary-navigation"
           aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={() => setMenuState({ pathname, open: !menuOpen })}
         >
           <span className="menuIcon" aria-hidden="true">
             <span />

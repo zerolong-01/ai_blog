@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { invalidatePublicPosts } from "@/lib/post-cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createHash } from "node:crypto";
@@ -105,11 +105,5 @@ export async function deletePostAction(formData: FormData) {
   await deleteReviewFile(slug);
   await logAdminEvent("post_deleted", { target: slug, outcome: "success" });
 
-  revalidatePath("/admin");
-  revalidatePath("/tools");
-  revalidatePath("/search");
-  revalidatePath("/categories");
-  revalidatePath("/series");
-  revalidatePath(`/tools/${slug}`);
-  revalidatePath("/sitemap.xml");
+  invalidatePublicPosts(slug);
 }

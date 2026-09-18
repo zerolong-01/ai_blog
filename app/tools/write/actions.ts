@@ -1,7 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { invalidatePublicPosts } from "@/lib/post-cache";
 
 import { requireAdminAuth } from "@/lib/admin-auth";
 import { logAdminEvent } from "@/lib/admin-audit";
@@ -11,6 +10,7 @@ import { createReviewFile, updateReviewFile } from "@/lib/reviews";
 
 export type ReviewFormState = {
   error: string | null;
+  redirectTo?: `/tools/${string}`;
 };
 
 const initialState: ReviewFormState = {
@@ -26,16 +26,6 @@ function getSummary(content: string) {
       .find(Boolean)
       ?.slice(0, 180) || ""
   );
-}
-
-function revalidatePostPaths(slug: string) {
-  revalidatePath("/admin");
-  revalidatePath("/tools");
-  revalidatePath("/search");
-  revalidatePath("/categories");
-  revalidatePath("/series");
-  revalidatePath(`/tools/${slug}`);
-  revalidatePath("/sitemap.xml");
 }
 
 function getSeriesFields(formData: FormData) {
@@ -111,7 +101,7 @@ export async function createReviewAction(
     };
   }
 
-  revalidatePostPaths(slug);
+  invalidatePublicPosts(slug);
   const draftId = String(formData.get("draftId") || "").trim();
   if (draftId) {
     await markDraftPublished(draftId, slug);
@@ -119,7 +109,7 @@ export async function createReviewAction(
   }
   await logAdminEvent("post_created", { target: slug, outcome: "success" });
 
-  redirect(`/tools/${slug}`);
+  return { error: null, redirectTo: `/tools/${slug}` };
 }
 
 export async function updateReviewAction(
@@ -176,7 +166,7 @@ export async function updateReviewAction(
     };
   }
 
-  revalidatePostPaths(updatedSlug);
+  invalidatePublicPosts(updatedSlug);
   await logAdminEvent("post_updated", { target: updatedSlug, outcome: "success" });
-  redirect(`/tools/${updatedSlug}`);
+  return { error: null, redirectTo: `/tools/${updatedSlug}` };
 }

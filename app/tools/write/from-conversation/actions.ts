@@ -1,13 +1,14 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { invalidatePublicPosts } from "@/lib/post-cache";
 import { requireAdminAuth } from "@/lib/admin-auth";
 import { logAdminEvent } from "@/lib/admin-audit";
 import { exceedsUtf8Bytes, INPUT_LIMITS } from "@/lib/input-validation";
 import { createReviewFile } from "@/lib/reviews";
 
-export async function publishConversationAction(_previous: { error: string | null }, formData: FormData): Promise<{ error: string | null }> {
+export type ConversationPublishState = { error: string | null; redirectTo?: `/tools/${string}` };
+
+export async function publishConversationAction(_previous: ConversationPublishState, formData: FormData): Promise<ConversationPublishState> {
   try {
     await requireAdminAuth();
   } catch {
@@ -34,7 +35,7 @@ export async function publishConversationAction(_previous: { error: string | nul
     console.error("[conversation-publish]", { message: error instanceof Error ? error.message : String(error) });
     return { error: "글 저장에 실패했습니다. 데이터베이스 설정을 확인하고 다시 시도해 주세요." };
   }
-  for (const path of ["/", "/admin", "/tools", "/search", "/categories", "/series", "/sitemap.xml", "/rss.xml", `/tools/${slug}`]) revalidatePath(path);
+  invalidatePublicPosts(slug);
   await logAdminEvent("conversation_published", { target: slug, outcome: "success" });
-  redirect(`/tools/${slug}`);
+  return { error: null, redirectTo: `/tools/${slug}` };
 }

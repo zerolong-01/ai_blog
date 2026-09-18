@@ -1,0 +1,53 @@
+name: 블로그 DB 백업·복원 검증
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 18 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: blog-database-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      restore-db:
+        image: postgres:18
+        env:
+          POSTGRES_USER: backup_test
+          POSTGRES_PASSWORD: restore-test-only
+          POSTGRES_DB: blog_restore_check
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U backup_test -d blog_restore_check"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: PostgreSQL 18 도구 설치
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-18
+          echo '/usr/lib/postgresql/18/bin' >> "$GITHUB_PATH"
+      - name: 암호화 백업 및 격리 데이터베이스 복원 확인
+        run: npm run backup
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+          RESTORE_TEST_DATABASE_URL: postgresql://backup_test:restore-test-only@localhost:5432/blog_restore_check?sslmode=disable
+          BACKUP_OUTPUT: backups/blog.backup.enc
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blog-backup-${{ github.run_id }}
+          path: backups/blog.backup.enc
+          retention-days: 14
+          if-no-files-found: error
