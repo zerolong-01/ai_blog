@@ -1,5 +1,6 @@
 @layer legacy, ai-theme;
 
+
 @layer legacy {
 :root {
   --bg: #ffffff;
@@ -1460,4 +1461,26 @@ h3 {
 
 }
 
+}
+
+@layer ai-theme {
+  .reviewHeaderSimple h1,
+  .feedCard h2,
+  .toolCard h3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .reviewHeaderSimple h1 {
+    font-size: clamp(1.75rem, 4vw, 3.5rem);
+    line-height: 1.2;
+    letter-spacing: -0.035em;
+    max-height: 2.4em;
+  }
 }
