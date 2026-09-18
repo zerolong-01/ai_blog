@@ -7,8 +7,8 @@ import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "AI Blog",
-  description: "Thoughtful writing about AI tools, workflows, trends, and the broader ideas shaping how people use AI.",
+  title: "AI & Cybersecurity Blog",
+  description: "Clear analysis of AI tools, cybersecurity threats, data protection, and the ideas shaping a safer digital world.",
   alternates: {
     canonical: absoluteUrl("/")
   }
@@ -40,10 +40,10 @@ export default async function HomePage() {
       <section className="minimalHero">
         <div className="container minimalHeroGrid">
           <div className="minimalHeroCopy">
-            <span className="eyebrow"><span className="statusDot" /> Independent AI intelligence</span>
-            <h1>Understand what&apos;s <span className="gradientText">next in AI.</span></h1>
+            <span className="eyebrow"><span className="statusDot" /> Independent AI &amp; security insights</span>
+            <h1>Explore <span className="gradientText">AI &amp; cybersecurity.</span></h1>
             <p className="heroCopy">
-              Clear analysis of the models, tools, and workflows moving artificial intelligence from research into the real world.
+              Clear analysis of AI models and tools, emerging cyber threats, and practical ways to protect data and digital systems.
             </p>
             <div className="ctaRow">
               <Link href="#latest-posts" className="primaryButton">
@@ -62,7 +62,7 @@ export default async function HomePage() {
       <section id="latest-posts" className="container homeSection" aria-labelledby="latest-posts-heading">
         <div className="sectionHeading">
           <div>
-            <span className="eyebrow">Fresh from the blog</span>
+            <span className="eyebrow">The latest in AI &amp; security</span>
             <h2 id="latest-posts-heading">Latest posts</h2>
           </div>
           <Link href="/tools" className="textLink">
