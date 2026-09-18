@@ -1484,3 +1484,65 @@ h3 {
     max-height: 2.4em;
   }
 }
+
+@layer ai-theme {
+  .securityArtwork {
+    display: grid;
+    place-items: center;
+    isolation: isolate;
+  }
+
+  .securityNetwork {
+    position: relative;
+    width: min(88%, 400px);
+    height: calc(100% - 100px);
+    max-height: 400px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .securityOrbit {
+    stroke: var(--border);
+    stroke-width: 1;
+    stroke-dasharray: 2 9;
+  }
+
+  .securityOrbitInner { stroke: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .securityConnections { stroke: color-mix(in srgb, var(--accent) 35%, transparent); stroke-width: 1.5; }
+  .securityShield { stroke: var(--accent); stroke-width: 2.5; }
+  .securityShieldInset { stroke: color-mix(in srgb, var(--accent) 25%, transparent); stroke-width: 1; }
+  .securityLock { stroke: var(--accent); stroke-width: 3; }
+  .securityLock rect { fill: var(--surface-strong); }
+  .securityLock circle { fill: var(--cyan); stroke: var(--cyan); }
+  .securityNodes { fill: var(--surface-strong); stroke: var(--accent); stroke-width: 1.5; }
+  .securityNodeCores { fill: var(--cyan); }
+
+  .securityPackets path {
+    stroke: var(--cyan);
+    stroke-width: 3;
+    stroke-dasharray: 4 176;
+    animation: security-signal-flow 6s linear infinite;
+  }
+
+  .securityPackets path:nth-child(2) { animation-delay: -1.5s; }
+  .securityPackets path:nth-child(3) { animation-delay: -3s; }
+  .securityPackets path:nth-child(4) { animation-delay: -4.5s; }
+
+  @keyframes security-signal-flow {
+    to { stroke-dashoffset: -180; }
+  }
+
+  @media (max-width: 400px) {
+    .securityArtwork .visualLabel,
+    .securityArtwork .visualFooter {
+      left: 1rem;
+      right: 1rem;
+      font-size: 0.55rem;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .securityPackets path { animation: none; }
+  }
+}

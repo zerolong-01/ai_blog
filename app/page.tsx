@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ToolCard } from "@/components/tool-card";
+import { SecurityArtwork } from "@/components/security-artwork";
 import { getAllReviewMeta } from "@/lib/reviews";
 import { absoluteUrl } from "@/lib/site";
 
@@ -54,17 +55,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="minimalArtwork" aria-hidden="true">
-            <div className="visualLabel"><span>AI SIGNAL</span><strong>LIVE</strong></div>
-            <div className="artFlower"><span>01</span><span>AI</span><span>∞</span></div>
-            <div className="artBox"><i /><i /><i /><i /><i /><i /></div>
-            <div className="artLine artLineOne" />
-            <div className="artLine artLineTwo" />
-            <div className="artDot artDotOne" />
-            <div className="artDot artDotTwo" />
-            <div className="artDot artDotThree" />
-            <div className="visualFooter"><span>MODEL / DATA / SYSTEM</span><span>2026</span></div>
-          </div>
+          <SecurityArtwork />
         </div>
       </section>
 
