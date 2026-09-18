@@ -248,6 +248,12 @@ export async function updatePost(review: ToolReview) {
   await ensurePostsDatabase();
   const sql = getSql();
   const rows = await sql`
+    WITH original AS MATERIALIZED (
+      SELECT p.* FROM posts p WHERE slug = ${review.slug} FOR UPDATE
+    ), archived AS (
+      INSERT INTO post_revisions (post_slug, action, snapshot)
+      SELECT slug, 'update', to_jsonb(original) FROM original RETURNING post_slug
+    )
     UPDATE posts SET
       name = ${review.name},
       tagline = ${review.tagline},
@@ -265,8 +271,9 @@ export async function updatePost(review: ToolReview) {
       series_name = ${review.seriesName || null},
       series_order = ${review.seriesOrder ?? null},
       updated_at = ${toDateOnly(review.updatedAt)}::date
-    WHERE slug = ${review.slug}
-    RETURNING slug
+    FROM archived
+    WHERE posts.slug = archived.post_slug
+    RETURNING posts.slug
   `;
   if (rows.length !== 1) {
     throw new Error(`Post not found: ${review.slug}`);
@@ -276,7 +283,15 @@ export async function updatePost(review: ToolReview) {
 export async function deletePost(slug: string) {
   await ensurePostsDatabase();
   const sql = getSql();
-  const rows = (await sql`DELETE FROM posts WHERE slug = ${slug} RETURNING slug`) as Array<{ slug: string }>;
+  const rows = (await sql`
+    WITH original AS MATERIALIZED (
+      SELECT p.* FROM posts p WHERE slug = ${slug} FOR UPDATE
+    ), archived AS (
+      INSERT INTO post_revisions (post_slug, action, snapshot)
+      SELECT slug, 'delete', to_jsonb(original) FROM original RETURNING post_slug
+    )
+    DELETE FROM posts USING archived WHERE posts.slug = archived.post_slug RETURNING posts.slug
+  `) as Array<{ slug: string }>;
   return rows.length;
 }
 
@@ -297,6 +312,32 @@ export function getDatabaseStorageStatus() {
     mode: "database" as const,
     target: configured ? "Neon Postgres" : "DATABASE_URL not configured"
   };
+}
+
+export async function getPostRevisions(slug: string | null, page: number) {
+  const sql = getSql();
+  return await sql`
+    SELECT id::text, post_slug, action, snapshot->>'name' AS name, created_at::text
+    FROM post_revisions WHERE (${slug}::text IS NULL OR post_slug = ${slug})
+    ORDER BY created_at DESC, id DESC LIMIT 21 OFFSET ${(page - 1) * 20}
+  ` as Array<{ id: string; post_slug: string; action: string; name: string; created_at: string }>;
+}
+
+export async function getPostRevision(id: string) {
+  const rows = await getSql()`SELECT id::text, action, snapshot FROM post_revisions WHERE id = ${id}::bigint`;
+  if (!rows[0]) return undefined;
+  return { id: String(rows[0].id), action: String(rows[0].action), review: toReview(rows[0].snapshot as PostRecord) };
+}
+
+export async function restorePostRevision(id: string) {
+  const revision = await getPostRevision(id);
+  if (!revision) throw new Error("복원할 이력을 찾을 수 없습니다.");
+  if (revision.action === "delete") {
+    if (!await insertPost(revision.review)) throw new Error("같은 주소의 글이 이미 존재합니다. 현재 글을 덮어쓰지 않았습니다.");
+  } else {
+    await updatePost({ ...revision.review, updatedAt: new Date().toISOString().slice(0, 10) });
+  }
+  return revision.review.slug;
 }
 
 export async function getPostPage(page: number, query: string) {

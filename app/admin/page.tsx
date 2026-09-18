@@ -57,6 +57,7 @@ export default async function AdminPage() {
         <Link href="/tools/write" className="primaryButton">
           Write post
         </Link>
+        <Link href="/admin/history" className="secondaryButton">수정 이력·삭제 복구</Link>
         <form action={logoutAdminAction}>
           <button type="submit" className="secondaryButton">
             Sign out
@@ -94,6 +95,7 @@ export default async function AdminPage() {
               <Link href={`/tools/${post.slug}/edit` as Route} className="secondaryButton">
                 Edit
               </Link>
+              <Link href={{ pathname: "/admin/history", query: { slug: post.slug } }} className="secondaryButton">이력</Link>
               <form action={deletePostAction} className="adminDeleteForm">
                 <input type="hidden" name="slug" value={post.slug} />
                 <label className="deleteConfirmation">

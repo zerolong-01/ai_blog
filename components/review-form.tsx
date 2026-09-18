@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
+import { MarkdownPreview } from "@/components/markdown-preview";
 import { EditorDraftStatus } from "@/components/editor-draft-status";
 import { useEditorDraft } from "@/components/use-editor-draft";
 import { useFormStatus } from "react-dom";
@@ -132,6 +133,7 @@ export function ReviewForm({ mode = "create", seriesOptions = [], initialValues,
 
         {state.error ? <p className="formError" role="alert">{state.error}</p> : null}
 
+        <MarkdownPreview content={values.content} disabled={pending} />
         <EditorDraftStatus status={status} clearDraft={clearDraft} disabled={pending} />
 
         {intro}

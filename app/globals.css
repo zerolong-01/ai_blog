@@ -1455,4 +1455,8 @@ h3 {
   }
 }
 
+.markdownPreview, .revisionPreview { display: grid; gap: 1rem; min-width: 0; }
+.markdownPreview .editorActions { flex-wrap: wrap; gap: 0.75rem; }
+.previewBody { width: 100%; max-width: 100%; margin: 0; padding: clamp(1rem, 3vw, 2rem); background: var(--surface-strong); }
+.previewBody pre, .previewBody table { max-width: 100%; overflow-x: auto; }
 .postPageNavigation { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 2rem; }
