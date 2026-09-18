@@ -3,14 +3,15 @@ import { getBundledReviewBySlug, getBundledReviewMeta } from "@/lib/reviews-fall
 import {
   deletePost,
   getDatabaseStorageStatus,
-  getPostCountBySlug,
   getPostRecordBySlug,
   getPostRecords,
   insertPost,
+  updatePost,
   toReview,
   toReviewMeta
 } from "@/lib/posts-db";
 import { siteConfig } from "@/lib/site";
+import { INPUT_LIMITS } from "@/lib/input-validation";
 
 type CreateReviewInput = Omit<ToolReviewMeta, "slug" | "author" | "publishedAt" | "updatedAt"> & {
   content: string;
@@ -43,20 +44,6 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-");
-}
-
-async function resolveUniqueSlug(baseSlug: string) {
-  if ((await getPostCountBySlug(baseSlug)) === 0) {
-    return baseSlug;
-  }
-
-  let index = 2;
-
-  while ((await getPostCountBySlug(`${baseSlug}-${index}`)) > 0) {
-    index += 1;
-  }
-
-  return `${baseSlug}-${index}`;
 }
 
 export function getReviewStorageStatus(): ReviewStorageStatus {
@@ -147,13 +134,13 @@ export async function getReviewsBySeries(seriesName: string) {
 }
 
 export async function createReviewFile(input: CreateReviewInput) {
-  const baseSlug = slugify(input.slug?.trim() || input.name);
+  const baseSlug = slugify(input.slug?.trim() || input.name).slice(0, INPUT_LIMITS.postSlug).replace(/-+$/, "");
 
   if (!baseSlug) {
     throw new Error("A valid post title is required.");
   }
 
-  const slug = await resolveUniqueSlug(baseSlug);
+  const slug = baseSlug;
   const review: ToolReview = {
     ...input,
     slug,
@@ -164,9 +151,15 @@ export async function createReviewFile(input: CreateReviewInput) {
     content: input.content.trim()
   };
 
-  await insertPost(review);
-
-  return review;
+  // The primary key arbitrates concurrent writers; never update an existing post here.
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const candidate = {
+      ...review,
+      slug: attempt === 0 ? baseSlug : `${baseSlug.slice(0, INPUT_LIMITS.postSlug - 37).replace(/-+$/, "")}-${crypto.randomUUID()}`
+    };
+    if (await insertPost(candidate)) return candidate;
+  }
+  throw new Error("Could not allocate a unique post address. Please retry.");
 }
 
 export async function updateReviewFile(input: UpdateReviewInput) {
@@ -192,7 +185,7 @@ export async function updateReviewFile(input: UpdateReviewInput) {
     content: input.content.trim()
   };
 
-  await insertPost(review);
+  await updatePost(review);
 
   return review;
 }

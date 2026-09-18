@@ -2,10 +2,6 @@ import { getDatabaseSql } from "@/lib/database";
 import { siteConfig } from "@/lib/site";
 import { ToolCategory, ToolReview, ToolReviewMeta } from "@/lib/types";
 
-type CountRow = {
-  count: string | number;
-};
-
 type PostRecord = {
   slug: string;
   name: string;
@@ -103,11 +99,11 @@ function mapRecordToReview(record: PostRecord): ToolReview {
   };
 }
 
-async function upsertPost(review: ToolReview) {
+async function createPost(review: ToolReview) {
   const sql = getSql();
   const normalizedUpdatedAt = toDateOnly(review.updatedAt);
 
-  await sql`
+  const rows = await sql`
     INSERT INTO posts (
       slug,
       name,
@@ -149,25 +145,10 @@ async function upsertPost(review: ToolReview) {
       ${toDateOnly(review.publishedAt)}::date,
       ${normalizedUpdatedAt}::date
     )
-    ON CONFLICT (slug) DO UPDATE SET
-      name = EXCLUDED.name,
-      tagline = EXCLUDED.tagline,
-      category = EXCLUDED.category,
-      website = EXCLUDED.website,
-      price = EXCLUDED.price,
-      rating = EXCLUDED.rating,
-      summary = EXCLUDED.summary,
-      best_for = EXCLUDED.best_for,
-      pros = EXCLUDED.pros,
-      cons = EXCLUDED.cons,
-      features = EXCLUDED.features,
-      verdict = EXCLUDED.verdict,
-      author = EXCLUDED.author,
-      content = EXCLUDED.content,
-      series_name = EXCLUDED.series_name,
-      series_order = EXCLUDED.series_order,
-      updated_at = EXCLUDED.updated_at
+    ON CONFLICT (slug) DO NOTHING
+    RETURNING slug
   `;
+  return rows.length === 1;
 }
 
 async function initializeDatabase() {
@@ -258,16 +239,38 @@ export async function getPostRecordBySlug(slug: string) {
   return rows[0] ?? null;
 }
 
-export async function getPostCountBySlug(slug: string) {
-  await ensurePostsDatabase();
-  const sql = getSql();
-  const rows = (await sql`SELECT COUNT(*)::int AS count FROM posts WHERE slug = ${slug}`) as CountRow[];
-  return Number(rows[0]?.count || 0);
-}
-
 export async function insertPost(review: ToolReview) {
   await ensurePostsDatabase();
-  await upsertPost(review);
+  return createPost(review);
+}
+
+export async function updatePost(review: ToolReview) {
+  await ensurePostsDatabase();
+  const sql = getSql();
+  const rows = await sql`
+    UPDATE posts SET
+      name = ${review.name},
+      tagline = ${review.tagline},
+      category = ${review.category},
+      website = ${review.website},
+      price = ${review.price},
+      rating = ${review.rating},
+      summary = ${review.summary},
+      best_for = ${JSON.stringify(review.bestFor)}::jsonb,
+      pros = ${JSON.stringify(review.pros)}::jsonb,
+      cons = ${JSON.stringify(review.cons)}::jsonb,
+      features = ${JSON.stringify(review.features)}::jsonb,
+      verdict = ${review.verdict},
+      content = ${review.content},
+      series_name = ${review.seriesName || null},
+      series_order = ${review.seriesOrder ?? null},
+      updated_at = ${toDateOnly(review.updatedAt)}::date
+    WHERE slug = ${review.slug}
+    RETURNING slug
+  `;
+  if (rows.length !== 1) {
+    throw new Error(`Post not found: ${review.slug}`);
+  }
 }
 
 export async function deletePost(slug: string) {
