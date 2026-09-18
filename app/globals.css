@@ -1580,3 +1580,53 @@ h3 {
   .securityLock rect { fill: #183991; stroke: #d8e8ff; }
   .securityNodes { filter: drop-shadow(0 3px 3px color-mix(in srgb, var(--accent) 20%, transparent)); }
 }
+
+@layer ai-theme {
+  .reviewShell {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .reviewShell::before,
+  .reviewShell::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: min(900px, 100%);
+    pointer-events: none;
+  }
+
+  .reviewShell::before {
+    background:
+      radial-gradient(ellipse at 18% 12%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 52%),
+      radial-gradient(ellipse at 86% 28%, color-mix(in srgb, var(--cyan) 9%, transparent), transparent 48%);
+  }
+
+  .reviewShell::after {
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--border) 40%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--border) 40%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom, transparent, black 8%, transparent 85%);
+  }
+
+  .reviewShell .reviewHeaderSimple {
+    padding: clamp(1.5rem, 4vw, 3rem) 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .reviewShell .postBody {
+    margin-inline: auto;
+    background: var(--surface-strong);
+    border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+    box-shadow: 0 16px 48px color-mix(in srgb, var(--accent) 7%, transparent);
+  }
+
+  @media (max-width: 640px) {
+    .reviewShell::after { background-size: 32px 32px; }
+    .reviewShell .postBody { padding: 1.5rem; }
+  }
+}
