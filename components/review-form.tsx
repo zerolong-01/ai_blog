@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createReviewAction, type ReviewFormState, updateReviewAction } from "@/app/tools/write/actions";
@@ -39,6 +39,12 @@ function SubmitButton({ mode }: { mode: "create" | "edit" }) {
 export function ReviewForm({ mode = "create", seriesOptions = [], initialValues, intro, draftId }: ReviewFormProps) {
   const action = mode === "edit" ? updateReviewAction : createReviewAction;
   const [state, formAction] = useActionState(action, initialState);
+  const [values, setValues] = useState({
+    name: initialValues?.name || "",
+    content: initialValues?.content || "",
+    seriesName: initialValues?.seriesName || "",
+    seriesOrder: initialValues?.seriesOrder?.toString() || ""
+  });
 
   return (
     <form action={formAction} className="editorForm">
@@ -53,7 +59,8 @@ export function ReviewForm({ mode = "create", seriesOptions = [], initialValues,
             name="name"
             type="text"
             placeholder="What AI agents are getting right in 2026"
-            defaultValue={initialValues?.name || ""}
+            value={values.name}
+            onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
             maxLength={INPUT_LIMITS.postTitle}
             required
           />
@@ -65,7 +72,8 @@ export function ReviewForm({ mode = "create", seriesOptions = [], initialValues,
             name="seriesName"
             type="text"
             placeholder="Building a practical AI workflow"
-            defaultValue={initialValues?.seriesName || ""}
+            value={values.seriesName}
+            onChange={(event) => setValues((current) => ({ ...current, seriesName: event.target.value }))}
             maxLength={INPUT_LIMITS.postSeriesName}
             list="series-options"
           />
@@ -87,7 +95,8 @@ export function ReviewForm({ mode = "create", seriesOptions = [], initialValues,
             max={INPUT_LIMITS.postSeriesOrder}
             step={1}
             placeholder="1"
-            defaultValue={initialValues?.seriesOrder}
+            value={values.seriesOrder}
+            onChange={(event) => setValues((current) => ({ ...current, seriesOrder: event.target.value }))}
           />
         </label>
 
@@ -97,14 +106,15 @@ export function ReviewForm({ mode = "create", seriesOptions = [], initialValues,
             name="content"
             rows={20}
             maxLength={INPUT_LIMITS.postContentBytes}
-            defaultValue={initialValues?.content || ""}
+            value={values.content}
+            onChange={(event) => setValues((current) => ({ ...current, content: event.target.value }))}
             placeholder={`## Opening thought\n\nWrite freely in markdown.\n\n- bullet points work\n- headings work\n- links work too\n\n[OpenAI](https://openai.com)`}
             required
           />
         </label>
       </div>
 
-      {state.error ? <p className="formError">{state.error}</p> : null}
+      {state.error ? <p className="formError" role="alert">{state.error}</p> : null}
 
       {intro}
 

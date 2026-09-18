@@ -65,7 +65,11 @@ export async function createReviewAction(
   previousState: ReviewFormState = initialState,
   formData: FormData
 ): Promise<ReviewFormState> {
-  await requireAdminAuth();
+  try {
+    await requireAdminAuth();
+  } catch {
+    return { error: "Your admin session has expired. Sign in again and retry." };
+  }
 
   const name = String(formData.get("name") || "").trim();
   const content = String(formData.get("content") || "").trim();
@@ -122,7 +126,11 @@ export async function updateReviewAction(
   previousState: ReviewFormState = initialState,
   formData: FormData
 ): Promise<ReviewFormState> {
-  await requireAdminAuth();
+  try {
+    await requireAdminAuth();
+  } catch {
+    return { error: "Your admin session has expired. Sign in again and retry." };
+  }
 
   const slug = String(formData.get("slug") || "").trim();
   const name = String(formData.get("name") || "").trim();
