@@ -9,7 +9,7 @@ type ToolCardProps = {
 
 export function ToolCard({ tool }: ToolCardProps) {
   return (
-    <article className="toolCard">
+    <Link href={`/tools/${tool.slug}`} className="toolCard" aria-label={tool.name}>
       <div className="toolCardTop">
         <span className="pill">{tool.category}</span>
         <span className="rating">{formatDate(tool.updatedAt)}</span>
@@ -17,9 +17,9 @@ export function ToolCard({ tool }: ToolCardProps) {
       <h3>{tool.name}</h3>
       {tool.tagline ? <p className="tagline">{tool.tagline}</p> : null}
       <p>{tool.summary}</p>
-      <Link href={`/tools/${tool.slug}`} className="textLink">
+      <span className="textLink">
         Read article <span aria-hidden="true">↗</span>
-      </Link>
-    </article>
+      </span>
+    </Link>
   );
 }
