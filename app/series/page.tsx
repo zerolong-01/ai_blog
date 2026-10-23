@@ -7,11 +7,12 @@ import { absoluteUrl } from "@/lib/site";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "AI Blog Series",
-  description: "Browse connected AI articles by series and read every part in order.",
+  title: "Reading Series — AI & Cybersecurity",
+  description:
+    "Explore connected perspectives on AI, cybersecurity, and digital work, one part at a time.",
   alternates: {
-    canonical: absoluteUrl("/series")
-  }
+    canonical: absoluteUrl("/series"),
+  },
 };
 
 export default async function SeriesPage() {
@@ -26,7 +27,7 @@ export default async function SeriesPage() {
     const current = series.get(post.seriesName);
     series.set(post.seriesName, {
       count: (current?.count ?? 0) + 1,
-      description: current?.description || post.summary
+      description: current?.description || post.summary,
     });
   }
 
@@ -35,9 +36,11 @@ export default async function SeriesPage() {
   return (
     <section className="container pageShell">
       <div className="pageIntro">
-        <span className="eyebrow">Connected reading</span>
-        <h1>Browse series</h1>
-        <p>Follow related articles from the first part to the latest.</p>
+        <span className="eyebrow">Go a little deeper</span>
+        <h1>
+          Connected ideas<span className="headingDot">.</span>
+        </h1>
+        <p>Follow a thread. Build a perspective. Explore one story at a time.</p>
       </div>
 
       {seriesList.length > 0 ? (
@@ -58,8 +61,8 @@ export default async function SeriesPage() {
         </div>
       ) : (
         <div className="emptyState">
-          <h2>No series yet</h2>
-          <p>Series will appear here after posts are grouped in the editor.</p>
+          <h2>A new reading path is on its way.</h2>
+          <p>Until then, find a fresh perspective in the journal.</p>
           <Link href="/tools" className="textLink">
             Browse all posts
           </Link>

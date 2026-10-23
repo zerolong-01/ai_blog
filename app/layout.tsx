@@ -9,11 +9,12 @@ import { ThemeScript } from "@/components/theme-script";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 import "./globals.css";
+import "./editorial.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} | AI Blog`,
+    default: `${siteConfig.name} | AI & Cybersecurity`,
     template: `%s | ${siteConfig.name}`
   },
   description: siteConfig.description,

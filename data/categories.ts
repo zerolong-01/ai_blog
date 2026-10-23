@@ -7,8 +7,8 @@ export const categories: Array<{
 }> = [
   {
     slug: "general",
-    name: "General AI",
-    description: "Broad takes on AI trends, workflows, tools, and ideas."
+    name: "Analysis",
+    description: "Perspectives on AI, cybersecurity, and the ideas shaping digital work."
   },
   {
     slug: "writing",

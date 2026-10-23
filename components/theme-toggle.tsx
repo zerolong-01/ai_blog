@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { UiIcon } from "@/components/ui-icon";
 
 function subscribeToTheme(onChange: () => void) {
   const observer = new MutationObserver(onChange);
@@ -31,7 +32,8 @@ export function ThemeToggle() {
 
   return (
     <button className="themeToggle" onClick={toggleTheme} type="button" aria-label="Toggle theme">
-      {theme === "dark" ? "Light" : "Dark"} mode
+      <UiIcon name={theme === "dark" ? "sun" : "moon"} />
+      <span className="srOnly">{theme === "dark" ? "Light" : "Dark"} mode</span>
     </button>
   );
 }
