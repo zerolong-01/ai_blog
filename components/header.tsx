@@ -6,12 +6,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SearchDialog } from "@/components/search-dialog";
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/tools", label: "Blog" },
+  { href: "/tools", label: "Journal" },
   { href: "/series", label: "Series" },
-  { href: "/search", label: "Search" }
 ] satisfies Array<{ href: Route; label: string }>;
 
 export function Header() {
@@ -63,23 +63,6 @@ export function Header() {
           </span>
         </Link>
 
-        <button
-          ref={menuButtonRef}
-          type="button"
-          className="mobileMenuToggle"
-          aria-expanded={menuOpen}
-          aria-controls="primary-navigation"
-          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-          onClick={() => setMenuState({ pathname, open: !menuOpen })}
-        >
-          <span className="menuIcon" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-          <span>{menuOpen ? "Close" : "Menu"}</span>
-        </button>
-
         <div id="primary-navigation" className={`navMenu ${menuOpen ? "navMenuOpen" : ""}`}>
           <nav className="mainNav" aria-label="Primary">
             {navItems.map((item) => (
@@ -92,13 +75,27 @@ export function Header() {
               </Link>
             ))}
           </nav>
+        </div>
 
-          <div className="navActions">
-            <ThemeToggle />
-            <Link href="/tools" className="navCta">
-              Read blog
-            </Link>
-          </div>
+        <div className="headerUtilities">
+          <SearchDialog />
+          <ThemeToggle />
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="mobileMenuToggle"
+            aria-expanded={menuOpen}
+            aria-controls="primary-navigation"
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            onClick={() => setMenuState({ pathname, open: !menuOpen })}
+          >
+            <span className="menuIcon" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            <span className="srOnly">{menuOpen ? "Close" : "Menu"}</span>
+          </button>
         </div>
       </div>
     </header>

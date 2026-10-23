@@ -8,6 +8,7 @@ import { renderMarkdownDocument } from "@/lib/markdown";
 import { getAllReviewMeta, getReviewBySlug } from "@/lib/reviews";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { formatDate, slugToTitle } from "@/lib/utils";
+import { ArticleActions } from "@/components/article-actions";
 
 type ToolPageProps = {
   params: Promise<{ slug: string }>;
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 
   if (!tool) {
     return {
-      title: slugToTitle(slug)
+      title: slugToTitle(slug),
     };
   }
 
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
     title: tool.name,
     description: tool.summary,
     alternates: {
-      canonical: absoluteUrl(`/tools/${tool.slug}`)
+      canonical: absoluteUrl(`/tools/${tool.slug}`),
     },
     openGraph: {
       title: tool.name,
@@ -45,16 +46,16 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
           url: absoluteUrl(`/tools/${tool.slug}/opengraph-image`),
           width: 1200,
           height: 630,
-          alt: tool.name
-        }
-      ]
+          alt: tool.name,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: tool.name,
       description: tool.summary,
-      images: [absoluteUrl(`/tools/${tool.slug}/opengraph-image`)]
-    }
+      images: [absoluteUrl(`/tools/${tool.slug}/opengraph-image`)],
+    },
   };
 }
 
@@ -74,16 +75,20 @@ export default async function ToolPage({ params }: ToolPageProps) {
         .filter((post) => post.seriesName === tool.seriesName)
         .sort(
           (left, right) =>
-            (left.seriesOrder ?? Number.MAX_SAFE_INTEGER) - (right.seriesOrder ?? Number.MAX_SAFE_INTEGER) ||
-            left.publishedAt.localeCompare(right.publishedAt)
+            (left.seriesOrder ?? Number.MAX_SAFE_INTEGER) -
+              (right.seriesOrder ?? Number.MAX_SAFE_INTEGER) ||
+            left.publishedAt.localeCompare(right.publishedAt),
         )
     : [];
   const newerPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
-  const olderPost = currentIndex >= 0 && currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
+  const olderPost =
+    currentIndex >= 0 && currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
   const relatedPosts = posts
     .filter(
       (post) =>
-        post.slug !== tool.slug && post.category === tool.category && (!tool.seriesName || post.seriesName !== tool.seriesName)
+        post.slug !== tool.slug &&
+        post.category === tool.category &&
+        (!tool.seriesName || post.seriesName !== tool.seriesName),
     )
     .slice(0, 3);
   const articleUrl = absoluteUrl(`/tools/${tool.slug}`);
@@ -101,19 +106,19 @@ export default async function ToolPage({ params }: ToolPageProps) {
       ? {
           isPartOf: {
             "@type": "CreativeWorkSeries",
-            name: tool.seriesName
+            name: tool.seriesName,
           },
-          position: tool.seriesOrder
+          position: tool.seriesOrder,
         }
       : {}),
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": articleUrl
+      "@id": articleUrl,
     },
     author: {
       "@type": "Organization",
       name: tool.author,
-      url: siteConfig.url
+      url: siteConfig.url,
     },
     publisher: {
       "@type": "Organization",
@@ -122,9 +127,9 @@ export default async function ToolPage({ params }: ToolPageProps) {
       url: siteConfig.url,
       logo: {
         "@type": "ImageObject",
-        url: absoluteUrl("/opengraph-image")
-      }
-    }
+        url: absoluteUrl("/opengraph-image"),
+      },
+    },
   };
 
   return (
@@ -133,17 +138,41 @@ export default async function ToolPage({ params }: ToolPageProps) {
         <script
           nonce={nonce}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c") }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(articleJsonLd).replace(/</g, "\\u003c"),
+          }}
         />
         <header className="reviewHeader reviewHeaderSimple">
           <div>
-            <span className="eyebrow">AI blog</span>
-            <h1>{tool.name}</h1>
-            <p className="postDate">
-              By {tool.author} · Published {formatDate(tool.publishedAt)}
-              {tool.updatedAt !== tool.publishedAt ? ` · Updated ${formatDate(tool.updatedAt)}` : ""}
-              {` · About ${document.readingMinutes} min read`}
-            </p>
+            <nav className="articleBreadcrumb" aria-label="Breadcrumb">
+              <Link href="/tools">Journal</Link>
+              <span aria-hidden="true">/</span>
+              <Link href={`/categories/${tool.category}`}>
+                {tool.category === "general" ? "Analysis" : slugToTitle(tool.category)}
+              </Link>
+            </nav>
+            <h1 id="article-title" title={tool.name}>
+              {tool.name}
+            </h1>
+            <div className="articleMeta">
+              <p className="postDate">
+                <span className="authorMonogram" aria-hidden="true">
+                  SA
+                </span>
+                <span>
+                  <strong>{tool.author}</strong>
+                  <span>
+                    Published{" "}
+                    <time dateTime={tool.publishedAt}>{formatDate(tool.publishedAt)}</time>
+                    {tool.updatedAt !== tool.publishedAt
+                      ? ` · Updated ${formatDate(tool.updatedAt)}`
+                      : ""}
+                  </span>
+                </span>
+              </p>
+              <span className="readingTime">{document.readingMinutes} min read</span>
+              <ArticleActions />
+            </div>
             {tool.seriesName ? (
               <p className="seriesKicker">
                 <span>{tool.seriesName}</span>
@@ -153,22 +182,37 @@ export default async function ToolPage({ params }: ToolPageProps) {
           </div>
         </header>
 
-        <div className="postBody proseReview">
+        <div className={`readingLayout${document.headings.length > 1 ? " hasToc" : ""}`}>
           {document.headings.length > 1 ? (
-            <details className="articleToc" open>
-              <summary>On this page <span>{document.headings.length} sections</span></summary>
-              <nav aria-label="Table of contents">
-                <ol>
-                  {document.headings.map((heading) => (
-                    <li key={heading.id} className={heading.depth === 3 ? "tocSubsection" : undefined}>
-                      <a href={`#${heading.id}`} dangerouslySetInnerHTML={{ __html: heading.html }} />
-                    </li>
-                  ))}
-                </ol>
-              </nav>
-            </details>
+            <aside className="readingAside">
+              <details className="articleToc" open>
+                <summary>
+                  On this page <span>{document.headings.length} sections</span>
+                </summary>
+                <nav aria-label="Table of contents">
+                  <ol>
+                    {document.headings.map((heading) => (
+                      <li
+                        key={heading.id}
+                        className={heading.depth === 3 ? "tocSubsection" : undefined}
+                      >
+                        <a
+                          href={`#${heading.id}`}
+                          dangerouslySetInnerHTML={{ __html: heading.html }}
+                        />
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+              </details>
+              <Link href="/tools" className="readerReturn">
+                ← Back to the journal
+              </Link>
+            </aside>
           ) : null}
-          <div dangerouslySetInnerHTML={{ __html: document.html }} />
+          <div className="postBody proseReview">
+            <div className="articleContent" dangerouslySetInnerHTML={{ __html: document.html }} />
+          </div>
         </div>
 
         <footer className="postDiscovery">
@@ -223,12 +267,15 @@ export default async function ToolPage({ params }: ToolPageProps) {
               <div className="sectionHeading">
                 <h2 id="related-posts-heading">Related posts</h2>
                 {tool.seriesName ? (
-                  <Link href={`/series/${encodeURIComponent(tool.seriesName)}`} className="textLink">
+                  <Link
+                    href={`/series/${encodeURIComponent(tool.seriesName)}`}
+                    className="textLink"
+                  >
                     View full series
                   </Link>
                 ) : (
                   <Link href={`/categories/${tool.category}`} className="textLink">
-                    More in {tool.category}
+                    More in {tool.category === "general" ? "Analysis" : slugToTitle(tool.category)}
                   </Link>
                 )}
               </div>
