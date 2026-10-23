@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 
 import { ToolCard } from "@/components/tool-card";
-import { renderMarkdown } from "@/lib/markdown";
+import { renderMarkdownDocument } from "@/lib/markdown";
 import { getAllReviewMeta, getReviewBySlug } from "@/lib/reviews";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { formatDate, slugToTitle } from "@/lib/utils";
@@ -67,7 +67,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
     notFound();
   }
 
-  const reviewContent = await renderMarkdown(tool.content);
+  const document = await renderMarkdownDocument(tool.content);
   const currentIndex = posts.findIndex((post) => post.slug === tool.slug);
   const seriesPosts = tool.seriesName
     ? posts
@@ -142,6 +142,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <p className="postDate">
               By {tool.author} · Published {formatDate(tool.publishedAt)}
               {tool.updatedAt !== tool.publishedAt ? ` · Updated ${formatDate(tool.updatedAt)}` : ""}
+              {` · About ${document.readingMinutes} min read`}
             </p>
             {tool.seriesName ? (
               <p className="seriesKicker">
@@ -153,7 +154,21 @@ export default async function ToolPage({ params }: ToolPageProps) {
         </header>
 
         <div className="postBody proseReview">
-          <div dangerouslySetInnerHTML={{ __html: reviewContent }} />
+          {document.headings.length > 1 ? (
+            <details className="articleToc" open>
+              <summary>On this page <span>{document.headings.length} sections</span></summary>
+              <nav aria-label="Table of contents">
+                <ol>
+                  {document.headings.map((heading) => (
+                    <li key={heading.id} className={heading.depth === 3 ? "tocSubsection" : undefined}>
+                      <a href={`#${heading.id}`} dangerouslySetInnerHTML={{ __html: heading.html }} />
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            </details>
+          ) : null}
+          <div dangerouslySetInnerHTML={{ __html: document.html }} />
         </div>
 
         <footer className="postDiscovery">

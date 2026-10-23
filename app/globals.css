@@ -950,6 +950,63 @@ h3 {
   text-underline-offset: 0.14em;
 }
 
+.proseReview :is(h1, h2, h3, h4, h5, h6)[id] {
+  scroll-margin-top: 7rem;
+  overflow-wrap: anywhere;
+}
+
+.proseReview .headingAnchor {
+  margin-inline-start: 0.45em;
+  color: var(--muted);
+  font-size: 0.75em;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.headingAnchor:focus-visible,
+.articleToc a:focus-visible,
+.articleToc summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+
+.articleToc {
+  margin-bottom: 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 0.95rem;
+}
+
+.articleToc summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.articleToc summary span {
+  display: inline-block;
+  margin-inline-start: 0.65rem;
+  color: var(--muted);
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+.articleToc ol {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.articleToc li + li { margin-top: 0.45rem; }
+.articleToc .tocSubsection { padding-inline-start: 1rem; }
+.articleToc a { overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
 .cardGrid,
 .categoryGrid {
   display: grid;
