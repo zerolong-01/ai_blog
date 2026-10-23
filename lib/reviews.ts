@@ -15,6 +15,7 @@ import {
 } from "@/lib/posts-db";
 import { siteConfig } from "@/lib/site";
 import { INPUT_LIMITS } from "@/lib/input-validation";
+import { createPostSlug, normalizePostSlug } from "@/lib/post-slug";
 
 type CreateReviewInput = Omit<ToolReviewMeta, "slug" | "author" | "publishedAt" | "updatedAt"> & {
   content: string;
@@ -39,14 +40,6 @@ function reportStorageFailure(operation: string, error: unknown) {
     message: error instanceof Error ? error.message : String(error),
     timestamp: new Date().toISOString()
   });
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-");
 }
 
 export function getReviewStorageStatus(): ReviewStorageStatus {
@@ -120,7 +113,7 @@ export async function getAllReviewMetaWithStatus(): Promise<{
 }
 
 export async function getReviewBySlug(slug: string) {
-  const normalizedSlug = slugify(slug);
+  const normalizedSlug = normalizePostSlug(slug);
 
   if (!normalizedSlug) {
     return undefined;
@@ -154,11 +147,7 @@ export async function getReviewsBySeries(seriesName: string) {
 }
 
 export async function createReviewFile(input: CreateReviewInput) {
-  const baseSlug = slugify(input.slug?.trim() || input.name).slice(0, INPUT_LIMITS.postSlug).replace(/-+$/, "");
-
-  if (!baseSlug) {
-    throw new Error("A valid post title is required.");
-  }
+  const baseSlug = createPostSlug(input.name, input.slug);
 
   const slug = baseSlug;
   const review: ToolReview = {
@@ -183,7 +172,7 @@ export async function createReviewFile(input: CreateReviewInput) {
 }
 
 export async function updateReviewFile(input: UpdateReviewInput) {
-  const slug = slugify(input.slug);
+  const slug = normalizePostSlug(input.slug);
 
   if (!slug) {
     throw new Error("A valid slug is required.");
@@ -211,7 +200,7 @@ export async function updateReviewFile(input: UpdateReviewInput) {
 }
 
 export async function deleteReviewFile(slug: string) {
-  const normalizedSlug = slugify(slug);
+  const normalizedSlug = normalizePostSlug(slug);
 
   if (!normalizedSlug) {
     throw new Error("A valid slug is required.");
