@@ -15,7 +15,7 @@
     "backup": "node scripts/backup.mjs"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.1.0",
+    "@neondatabase/serverless": "^1.2.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "gray-matter": "^4.0.3",
